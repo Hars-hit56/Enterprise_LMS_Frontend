@@ -31,13 +31,13 @@ export function LoginForm() {
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit}>
-      <div className="grid gap-3 sm:grid-cols-3">
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      <div className="grid gap-2 sm:grid-cols-3">
         {demoAccounts.map((account) => (
           <button
             key={account.label}
             type="button"
-            className="rounded-2xl border border-line-200 bg-soft px-3 py-2 text-xs font-semibold text-ink-700 transition hover:border-brand-200"
+            className="rounded-lg border border-line-200 bg-white px-3 py-1.5 text-[11px] font-medium text-ink-700 transition hover:border-brand-200 hover:bg-brand-50"
             onClick={() => setForm({ email: account.email, password: account.password })}
           >
             {account.label}
@@ -65,7 +65,7 @@ export function LoginForm() {
       </Button>
       <p className="text-center text-sm text-ink-500">
         Don&apos;t have an account?{' '}
-        <Link to="/signup" className="font-semibold text-brand-600">
+        <Link to="/signup" className="font-medium text-brand-600">
           Sign up
         </Link>
       </p>

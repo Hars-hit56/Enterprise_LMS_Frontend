@@ -30,13 +30,13 @@ export function DataTable<T>({
 
   return (
     <Card className="overflow-hidden p-0">
-      <div className="flex flex-col gap-4 border-b border-line-100 px-6 py-5 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 border-b border-line-100 px-5 py-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-xl font-semibold text-ink-950">{title}</h3>
+          <h3 className="text-lg font-medium text-ink-950">{title}</h3>
           <p className="text-sm text-ink-500">{filteredRows.length} records</p>
         </div>
         {searchKey ? (
-          <label className="flex items-center gap-2 rounded-2xl border border-line-200 bg-soft px-4 py-3 text-sm text-ink-500">
+          <label className="flex items-center gap-2 rounded-lg border border-line-200 bg-soft px-3.5 py-2 text-sm text-ink-500">
             <Search size={16} />
             <input
               value={query}
@@ -52,7 +52,7 @@ export function DataTable<T>({
           <thead className="bg-soft text-sm text-ink-500">
             <tr>
               {columns.map((column) => (
-                <th key={String(column.key)} className="px-6 py-4 font-semibold">
+                <th key={String(column.key)} className="px-5 py-3 font-medium">
                   {column.header}
                 </th>
               ))}
@@ -62,7 +62,7 @@ export function DataTable<T>({
             {filteredRows.map((row, index) => (
               <tr key={index} className="border-t border-line-100 text-sm text-ink-900">
                 {columns.map((column) => (
-                  <td key={String(column.key)} className="px-6 py-4 align-middle">
+                  <td key={String(column.key)} className="px-5 py-3.5 align-middle">
                     {column.render ? column.render(row) : String(row[column.key as keyof T] ?? '')}
                   </td>
                 ))}

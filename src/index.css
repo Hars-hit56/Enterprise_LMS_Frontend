@@ -31,10 +31,15 @@ html {
 body {
   margin: 0;
   min-width: 320px;
+  font-size: 14px;
   font-family: var(--font-sans);
   color: var(--color-ink-900);
   background:
-    radial-gradient(circle at top left, rgba(55, 114, 255, 0.15), transparent 28%),
+    radial-gradient(
+      circle at top left,
+      rgba(55, 114, 255, 0.15),
+      transparent 28%
+    ),
     linear-gradient(180deg, #f9fbff 0%, #f3f7ff 100%);
 }
 

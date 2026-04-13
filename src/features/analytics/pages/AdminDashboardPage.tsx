@@ -17,22 +17,22 @@ export function AdminDashboardPage() {
 
   return (
     <DashboardSection
-      title="Admin Dashboard"
-      description="System overview and management across users, content, and operational health."
+      title="Admin overview"
+      description="A compact system view across users, courses, reports, and operational health."
     >
-      <div className="grid gap-5 xl:grid-cols-4">
+      <div className="grid gap-4 xl:grid-cols-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon ?? fallbackIcons[index]
           return <StatCard key={stat.id} stat={stat} icon={<Icon size={22} />} />
         })}
       </div>
-      <div className="inline-flex rounded-2xl border border-line-100 bg-white p-1 shadow-soft">
+      <div className="inline-flex flex-wrap rounded-xl border border-line-100 bg-white p-1 shadow-[0_8px_20px_rgba(15,23,42,0.04)]">
         {tabs.map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${
+            className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${
               activeTab === tab ? 'bg-soft text-ink-950' : 'text-ink-500 hover:text-ink-900'
             }`}
           >
@@ -41,34 +41,34 @@ export function AdminDashboardPage() {
         ))}
       </div>
       <Card className="overflow-hidden p-0">
-        <div className="border-b border-line-100 px-6 py-5">
-          <h2 className="text-2xl font-semibold text-ink-950">{activeTab}</h2>
+        <div className="border-b border-line-100 px-5 py-4">
+          <h2 className="text-lg font-medium text-ink-950">{activeTab}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left">
             <thead className="bg-soft text-sm text-ink-500">
               <tr>
-                <th className="px-6 py-4 font-semibold">Name</th>
-                <th className="px-6 py-4 font-semibold">Email</th>
-                <th className="px-6 py-4 font-semibold">Role</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold">Joined</th>
+                <th className="px-5 py-3.5 font-medium">Name</th>
+                <th className="px-5 py-3.5 font-medium">Email</th>
+                <th className="px-5 py-3.5 font-medium">Role</th>
+                <th className="px-5 py-3.5 font-medium">Status</th>
+                <th className="px-5 py-3.5 font-medium">Joined</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
                 <tr key={user.id} className="border-t border-line-100">
-                  <td className="px-6 py-4 font-semibold text-ink-950">{user.name}</td>
-                  <td className="px-6 py-4 text-ink-500">{user.email}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-5 py-3.5 font-medium text-ink-950">{user.name}</td>
+                  <td className="px-5 py-3.5 text-ink-500">{user.email}</td>
+                  <td className="px-5 py-3.5">
                     <Badge tone={user.role === 'admin' ? 'warning' : user.role === 'instructor' ? 'brand' : 'neutral'}>
                       {user.role}
                     </Badge>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-5 py-3.5">
                     <Badge tone="success">{user.status ?? 'Active'}</Badge>
                   </td>
-                  <td className="px-6 py-4 text-ink-500">{user.joined}</td>
+                  <td className="px-5 py-3.5 text-ink-500">{user.joined}</td>
                 </tr>
               ))}
             </tbody>

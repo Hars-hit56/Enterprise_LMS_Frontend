@@ -15,7 +15,7 @@ const toneStyles = {
 export function Badge({ children, tone = 'neutral' }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${toneStyles[tone]}`}
+      className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-medium ${toneStyles[tone]}`}
     >
       {children}
     </span>

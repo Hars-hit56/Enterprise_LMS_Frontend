@@ -14,34 +14,34 @@ export function InstructorDashboardPage() {
 
   return (
     <DashboardSection
-      title="Instructor Dashboard"
-      description="Monitor learner outcomes, publishing readiness, and course health."
+      title="Instructor overview"
+      description="Track course health, learner momentum, and the next teaching priorities."
     >
-      <div className="grid gap-5 xl:grid-cols-3">
+      <div className="grid gap-4 xl:grid-cols-3">
         {stats.map((stat, index) => {
           const Icon = stat.icon ?? fallbackIcons[index]
           return <StatCard key={stat.id} stat={stat} icon={<Icon size={22} />} />
         })}
       </div>
-      <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card className="space-y-5">
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card className="space-y-4">
           <div>
-            <h2 className="text-2xl font-semibold text-ink-950">Course performance</h2>
-            <p className="mt-2 text-sm text-ink-500">Review active cohorts and progress trends.</p>
+            <h2 className="text-lg font-medium text-ink-950">Course performance</h2>
+            <p className="mt-1.5 text-sm text-ink-500">Review active cohorts and progress trends.</p>
           </div>
           <CourseGrid courses={courses.slice(0, 2)} />
         </Card>
-        <Card className="space-y-4">
-          <h2 className="text-2xl font-semibold text-ink-950">Workflow focus</h2>
-          <div className="rounded-3xl bg-soft p-5">
-            <p className="text-sm font-semibold text-brand-600">Content review queue</p>
-            <p className="mt-2 text-3xl font-semibold text-ink-950">3 courses</p>
-            <p className="mt-3 text-sm text-ink-500">Need final review before publishing this week.</p>
+        <Card className="space-y-3">
+          <h2 className="text-lg font-medium text-ink-950">Workflow focus</h2>
+          <div className="rounded-xl border border-line-100 bg-soft p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-600">Content review queue</p>
+            <p className="mt-2 text-xl font-medium text-ink-950">3 courses</p>
+            <p className="mt-2 text-sm text-ink-500">Need final review before publishing this week.</p>
           </div>
-          <div className="rounded-3xl bg-soft p-5">
-            <p className="text-sm font-semibold text-brand-600">Student support tickets</p>
-            <p className="mt-2 text-3xl font-semibold text-ink-950">18 open</p>
-            <p className="mt-3 text-sm text-ink-500">Average response time is 2.1 hours.</p>
+          <div className="rounded-xl border border-line-100 bg-soft p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-600">Student support tickets</p>
+            <p className="mt-2 text-xl font-medium text-ink-950">18 open</p>
+            <p className="mt-2 text-sm text-ink-500">Average response time is 2.1 hours.</p>
           </div>
         </Card>
       </div>
