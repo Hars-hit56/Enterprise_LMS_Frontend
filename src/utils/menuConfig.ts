@@ -16,8 +16,8 @@ const roleMenus: Record<UserRole, MenuSection[]> = {
       title: 'Learning',
       items: [
         { label: 'Dashboard', path: 'dashboard', icon: LayoutDashboard, roles: ['student'] },
-        { label: 'My Courses', path: 'courses', icon: BookMarked, roles: ['student'] },
-        { label: 'Assessments', path: 'assessments', icon: ClipboardCheck, roles: ['student'] },
+        { label: 'My Courses', path: 'my-courses', icon: BookMarked, roles: ['student'] },
+        { label: 'Courses', path: 'courses', icon: Library, roles: ['student'] },
       ],
     },
   ],

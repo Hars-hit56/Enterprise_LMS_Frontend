@@ -8,9 +8,9 @@ export type StatWithIcon = DashboardStat & { icon: ElementType }
 export const analyticsService = {
   async getStudentStats() {
     const stats: StatWithIcon[] = [
-      { id: '1', label: 'Learning Streak', value: '16 days', delta: '+4 vs last month', tone: 'brand', icon: Activity },
-      { id: '2', label: 'Courses Active', value: '6', delta: '2 certifications in progress', tone: 'success', icon: BookOpen },
-      { id: '3', label: 'Average Score', value: '91%', delta: '+8% since last quarter', tone: 'warning', icon: TrendingUp },
+      { id: '1', label: 'Enrolled Courses', value: '3', delta: '2 currently ahead of schedule', tone: 'brand', icon: BookOpen },
+      { id: '2', label: 'Completed Courses', value: '8', delta: '1 completed this month', tone: 'success', icon: Activity },
+      { id: '3', label: 'Average Score', value: '91%', delta: '+8% from last assessment cycle', tone: 'warning', icon: TrendingUp },
     ]
 
     return mockApi(stats)

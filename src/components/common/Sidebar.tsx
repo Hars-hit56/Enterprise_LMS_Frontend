@@ -45,8 +45,8 @@ export function Sidebar({ role, basePath }: SidebarProps) {
         onClick={closeSidebar}
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-line-100 bg-white/95 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition-[width,transform] duration-300 lg:static lg:translate-x-0 lg:shadow-none ${
-          isSidebarCollapsed ? "lg:w-[92px]" : "lg:w-[250px]"
+        className={`fixed inset-y-0 left-0 z-40 flex h-screen flex-col border-r border-line-100 bg-white/95 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition-[width,transform] duration-300 lg:sticky lg:top-0 lg:translate-x-0 lg:shadow-none w-[220px] sm:w-[230px] ${
+          isSidebarCollapsed ? "lg:w-[92px]" : "lg:w-[258px]"
         } ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div
@@ -56,15 +56,15 @@ export function Sidebar({ role, basePath }: SidebarProps) {
             className={`flex items-center ${showLabels ? "justify-between gap-3" : "justify-center"}`}
           >
             <div className={`flex items-center ${showLabels ? "gap-3" : ""}`}>
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-500 text-white shadow-[0_10px_20px_rgba(37,99,235,0.22)]">
-                <GraduationCap size={20} />
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-500 text-white shadow-[0_10px_20px_rgba(37,99,235,0.22)]">
+                <GraduationCap size={18} />
               </div>
               {showLabels ?
                 <div>
-                  <p className="font-display text-base font-semibold text-ink-950">
+                  <p className="font-display text-[14px] font-medium text-ink-950">
                     LearnHub
                   </p>
-                  <p className="text-xs text-ink-500">
+                  <p className="text-[11px] text-ink-500">
                     {roleLabels[activeRole]} workspace
                   </p>
                 </div>
@@ -101,16 +101,16 @@ export function Sidebar({ role, basePath }: SidebarProps) {
                           [section.title]: !current[section.title],
                         }))
                       }
-                      className="flex w-full items-center justify-between px-2 py-2 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-500"
+                      className="flex w-full items-center justify-between px-2 py-2 text-[9px] font-medium uppercase tracking-[0.18em] text-ink-500"
                     >
                       {section.title}
                       <ChevronDown
-                        size={14}
+                        size={13}
                         className={`transition ${isOpen ? "rotate-180" : ""}`}
                       />
                     </button>
                   : showLabels ?
-                    <p className="px-2 py-2 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-500">
+                    <p className="px-2 py-2 text-[9px] font-medium uppercase tracking-[0.18em] text-ink-500">
                       {section.title}
                     </p>
                   : null}
@@ -129,15 +129,18 @@ export function Sidebar({ role, basePath }: SidebarProps) {
                                 showLabels ?
                                   "justify-start gap-3 px-3"
                                 : "justify-center px-0"
-                              } rounded-lg py-2 text-sm font-medium transition ${
+                              } rounded-xl py-2 text-[12px] font-medium transition ${
                                 isActive ?
-                                  "bg-soft text-ink-950 shadow-[inset_0_0_0_1px_rgba(220,229,243,0.85)]"
+                                  "bg-brand-50 text-brand-600 shadow-[inset_0_0_0_1px_rgba(191,210,255,0.9)]"
                                 : "text-ink-700 hover:bg-soft"
                               }`
                             }
                             title={!showLabels ? item.label : undefined}
                           >
-                            <Icon size={18} className="shrink-0" />
+                            <Icon
+                              size={16}
+                              className={`shrink-0 ${showLabels ? "" : "mx-auto"}`}
+                            />
                             {showLabels ?
                               <span className="truncate">{item.label}</span>
                             : null}
@@ -157,13 +160,13 @@ export function Sidebar({ role, basePath }: SidebarProps) {
         >
           {showLabels ?
             <div className="rounded-xl border border-line-100 bg-soft p-3.5">
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-brand-600">
+              <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-brand-600">
                 Workspace
               </p>
-              <p className="mt-1.5 text-sm font-medium text-ink-950">
+              <p className="mt-1.5 text-[12px] font-medium text-ink-950">
                 Stay on top of your daily flow
               </p>
-              <p className="mt-1 text-xs leading-5 text-ink-500">
+              <p className="mt-1 text-[11px] leading-[16px] text-ink-500">
                 Quick access to learning, teaching, and admin tools.
               </p>
             </div>
@@ -173,10 +176,10 @@ export function Sidebar({ role, basePath }: SidebarProps) {
             onClick={logout}
             className={`${showLabels ? "mt-4" : "mt-0"} flex w-full items-center ${
               showLabels ? "justify-center gap-2 px-4" : "justify-center px-0"
-            } rounded-lg border border-line-200 py-2 text-sm font-medium text-ink-700 transition hover:bg-soft`}
+            } rounded-lg border border-line-200 py-2 text-[12px] font-medium text-ink-700 transition hover:bg-soft`}
             title={!showLabels ? "Sign out" : undefined}
           >
-            <LogOut size={16} />
+            <LogOut size={14} />
             {showLabels ? "Sign out" : null}
           </button>
         </div>

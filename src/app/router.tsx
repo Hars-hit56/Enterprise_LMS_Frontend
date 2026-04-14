@@ -7,6 +7,7 @@ import { StudentDashboardPage } from '../features/analytics/pages/StudentDashboa
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { SignupPage } from '../features/auth/pages/SignupPage'
 import { CourseManagementPage } from '../features/courses/pages/CourseManagementPage'
+import { CoursesPage } from '../features/courses/pages/CoursesPage'
 import { CreateCoursePage } from '../features/courses/pages/CreateCoursePage'
 import { MyCoursesPage } from '../features/courses/pages/MyCoursesPage'
 import { StudentsPage } from '../features/users/pages/StudentsPage'
@@ -32,7 +33,8 @@ export function AppRouter() {
           <Route path="/student" element={<StudentLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<StudentDashboardPage />} />
-            <Route path="courses" element={<MyCoursesPage />} />
+            <Route path="my-courses" element={<MyCoursesPage />} />
+            <Route path="courses" element={<CoursesPage />} />
             <Route path="assessments" element={<AssessmentsPage />} />
           </Route>
         </Route>

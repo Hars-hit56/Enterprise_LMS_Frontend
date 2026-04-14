@@ -18,12 +18,19 @@ export interface Course {
   id: string
   title: string
   category: string
+  level: 'Beginner' | 'Intermediate' | 'Advanced'
   instructor: string
   progress: number
   lessons: number
+  duration: string
   status: 'Published' | 'Draft' | 'Review'
   students: number
   rating: number
+  thumbnail: string
+  description?: string
+  nextLesson?: string
+  isEnrolled?: boolean
+  isRecommended?: boolean
 }
 
 export interface Assessment {
