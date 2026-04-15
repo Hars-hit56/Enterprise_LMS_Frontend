@@ -54,13 +54,15 @@ export function StudentDashboardPage() {
           </Link>
         </div>
 
-        {isLoading ?
+        {isLoading ? (
           <CourseGridSkeleton count={3} columns="wide" />
-        : <div className="space-y-3">
+        ) : (
+          <div className="space-y-3">
             {enrolledCourses.slice(0, 3).map((course) => (
-              <div
+              <Link
                 key={course.id}
-                className={`rounded-[14px] border border-line-100 px-3.5 py-3.5 
+                to={`/student/courses/${course.id}?source=dashboard`}
+                className={`block rounded-[14px] border border-line-100 px-3.5 py-3.5 
                  hover:bg-soft transition-colors duration-200 
                 `}
               >
@@ -78,13 +80,10 @@ export function StudentDashboardPage() {
                           {course.nextLesson}
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1.5 self-start text-[12px] font-medium text-ink-950 transition hover:text-brand-600"
-                      >
+                      <span className="inline-flex items-center gap-1.5 self-start text-[12px] font-medium text-ink-950 transition hover:text-brand-600">
                         <Play size={13} />
                         Resume
-                      </button>
+                      </span>
                     </div>
 
                     <div className="mt-1 flex items-center gap-2.5">
@@ -100,10 +99,10 @@ export function StudentDashboardPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
-        }
+        )}
       </Card>
 
       <Card className="space-y-4">
@@ -114,12 +113,14 @@ export function StudentDashboardPage() {
           </h2>
         </div>
 
-        {isLoading ?
+        {isLoading ? (
           <CourseGridSkeleton count={3} columns="default" />
-        : <div className="grid gap-3 xl:grid-cols-3">
+        ) : (
+          <div className="grid gap-3 xl:grid-cols-3">
             {recommendedCourses.slice(0, 3).map((course) => (
-              <div
+              <Link
                 key={course.id}
+                to={`/student/courses/${course.id}?source=recommended`}
                 className="rounded-[22px] border border-line-100 bg-white px-4 py-4 transition hover:border-brand-200 hover:shadow-[0_16px_32px_rgba(15,23,42,0.06)]"
               >
                 <div className="grid h-10 w-10 place-items-center text-[24px]">
@@ -146,10 +147,10 @@ export function StudentDashboardPage() {
                     {course.level}
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
-        }
+        )}
       </Card>
     </DashboardSection>
   );

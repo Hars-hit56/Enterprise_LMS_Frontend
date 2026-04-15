@@ -1,6 +1,6 @@
 import { ChevronDown, GraduationCap, LogOut } from "lucide-react";
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useAppStore } from "../../store/appStore";
 import type { MenuSection, UserRole } from "../../types";
@@ -23,6 +23,7 @@ function filterSections(sections: MenuSection[], role: UserRole) {
 
 export function Sidebar({ role, basePath }: SidebarProps) {
   const { logout, user } = useAuth();
+  const location = useLocation();
   const activeRole = user?.role ?? role;
   const activeBasePath = user ? `/${user.role}` : basePath;
   const menuConfig = getMenuConfig(activeRole);
@@ -33,6 +34,15 @@ export function Sidebar({ role, basePath }: SidebarProps) {
   const sections = filterSections(menuConfig, activeRole);
   const isSingleSection = sections.length === 1;
   const showLabels = !isSidebarCollapsed;
+
+  const isMyCoursesDetailRoute =
+    activeRole === "student" &&
+    location.pathname.startsWith(`${activeBasePath}/courses/`) &&
+    location.search.includes("source=my-courses");
+  const isCoursesDetailRoute =
+    activeRole === "student" &&
+    location.pathname.startsWith(`${activeBasePath}/courses/`) &&
+    !location.search.includes("source=my-courses");
 
   return (
     <>
@@ -118,23 +128,32 @@ export function Sidebar({ role, basePath }: SidebarProps) {
                     <nav className="space-y-1">
                       {section.items.map((item) => {
                         const Icon = item.icon;
+                        const isMyCoursesItem = item.path === "my-courses";
+                        const isCoursesItem = item.path === "courses";
+                        const itemUrl = `${activeBasePath}/${item.path}`;
 
                         return (
                           <NavLink
                             key={item.path}
-                            to={`${activeBasePath}/${item.path}`}
+                            to={itemUrl}
+                            end={item.path === "dashboard" || item.path === "my-courses" || item.path === "courses"}
                             onClick={closeSidebar}
-                            className={({ isActive }) =>
-                              `group flex items-center ${
+                            className={() => {
+                              const isSelected =
+                                location.pathname === itemUrl ||
+                                (isMyCoursesItem && isMyCoursesDetailRoute) ||
+                                (isCoursesItem && isCoursesDetailRoute);
+
+                              return `group flex items-center ${
                                 showLabels ?
                                   "justify-start gap-3 px-3"
                                 : "justify-center px-0"
                               } rounded-xl py-2 text-[12px] font-medium transition ${
-                                isActive ?
+                                isSelected ?
                                   "bg-brand-50 text-brand-600 shadow-[inset_0_0_0_1px_rgba(191,210,255,0.9)]"
                                 : "text-ink-700 hover:bg-soft"
-                              }`
-                            }
+                              }`;
+                            }}
                             title={!showLabels ? item.label : undefined}
                           >
                             <Icon
