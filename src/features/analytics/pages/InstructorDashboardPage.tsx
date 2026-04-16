@@ -1,16 +1,35 @@
-import { BookOpen, TrendingUp, Users } from 'lucide-react'
-import { StatCard } from '../../../components/common/StatCard'
-import { Card } from '../../../components/ui/Card'
-import { CourseGrid } from '../../courses/components/CourseGrid'
-import { useCourses } from '../../courses/hooks/useCourses'
-import { DashboardSection } from '../components/DashboardSection'
-import { useInstructorAnalytics } from '../hooks/useAnalytics'
+import { BookOpen, TrendingUp, Users } from "lucide-react";
+import { DataTable } from "../../../components/common/DataTable";
+import { RowActions } from "../../../components/common/RowActions";
+import { StatCard } from "../../../components/common/StatCard";
+import { Badge } from "../../../components/ui/Badge";
+import type { Course, TableColumn } from "../../../types";
+import { useCourses } from "../../courses/hooks/useCourses";
+import { DashboardSection } from "../components/DashboardSection";
+import { useInstructorAnalytics } from "../hooks/useAnalytics";
 
-const fallbackIcons = [Users, BookOpen, TrendingUp]
+const fallbackIcons = [Users, BookOpen, TrendingUp];
+
+const columns: TableColumn<Course>[] = [
+  { key: "title", header: "Course" },
+  { key: "instructor", header: "Instructor" },
+  {
+    key: "status",
+    header: "Status",
+    render: (course) => (
+      <Badge tone={course.status === "Published" ? "success" : "warning"}>
+        {course.status}
+      </Badge>
+    ),
+  },
+  { key: "students", header: "Students" },
+  { key: "rating", header: "Rating" },
+  { key: "price", header: "Revenue" },
+];
 
 export function InstructorDashboardPage() {
-  const stats = useInstructorAnalytics()
-  const { courses } = useCourses('instructor')
+  const stats = useInstructorAnalytics();
+  const { courses } = useCourses("instructor");
 
   return (
     <DashboardSection
@@ -19,32 +38,31 @@ export function InstructorDashboardPage() {
     >
       <div className="grid gap-4 xl:grid-cols-3">
         {stats.map((stat, index) => {
-          const Icon = stat.icon ?? fallbackIcons[index]
-          return <StatCard key={stat.id} stat={stat} icon={<Icon size={22} />} />
+          const Icon = stat.icon ?? fallbackIcons[index];
+          return (
+            <StatCard key={stat.id} stat={stat} icon={<Icon size={22} />} />
+          );
         })}
       </div>
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card className="space-y-4">
+      <div className="">
+        {/* <Card className="space-y-4">
           <div>
-            <h2 className="text-lg font-medium text-ink-950">Course performance</h2>
-            <p className="mt-1.5 text-sm text-ink-500">Review active cohorts and progress trends.</p>
-          </div>
-          <CourseGrid courses={courses.slice(0, 2)} />
-        </Card>
-        <Card className="space-y-3">
-          <h2 className="text-lg font-medium text-ink-950">Workflow focus</h2>
-          <div className="rounded-xl border border-line-100 bg-soft p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-600">Content review queue</p>
-            <p className="mt-2 text-xl font-medium text-ink-950">3 courses</p>
-            <p className="mt-2 text-sm text-ink-500">Need final review before publishing this week.</p>
-          </div>
-          <div className="rounded-xl border border-line-100 bg-soft p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-600">Student support tickets</p>
-            <p className="mt-2 text-xl font-medium text-ink-950">18 open</p>
-            <p className="mt-2 text-sm text-ink-500">Average response time is 2.1 hours.</p>
-          </div>
-        </Card>
+            <h2 className="text-lg font-medium text-ink-950">
+              Course performance
+            </h2>
+            <p className="mt-1.5 text-sm text-ink-500">
+              Review active cohorts and progress trends.
+            </p>
+          </div> */}
+        {/* <CourseGrid courses={courses.slice(0, 2)} /> */}
+        <DataTable
+          title="Your Courses"
+          rows={courses}
+          columns={columns}
+          searchKey={(course) => `${course.title} ${course.instructor}`}
+        />
+        {/* </Card> */}
       </div>
     </DashboardSection>
-  )
+  );
 }

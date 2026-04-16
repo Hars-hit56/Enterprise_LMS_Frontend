@@ -48,7 +48,7 @@ export interface DashboardStat {
   id: string;
   label: string;
   value: string;
-  delta: string;
+  delta?: string;
   tone?: "brand" | "success" | "warning" | "danger";
 }
 

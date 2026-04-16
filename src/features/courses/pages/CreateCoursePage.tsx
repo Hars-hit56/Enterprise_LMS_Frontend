@@ -1,12 +1,14 @@
-import { Button } from '../../../components/ui/Button'
-import { Card } from '../../../components/ui/Card'
-import { Input } from '../../../components/ui/Input'
+import { Button } from "../../../components/ui/Button";
+import { Card } from "../../../components/ui/Card";
+import { Input } from "../../../components/ui/Input";
 
 export function CreateCoursePage() {
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="font-display text-4xl font-semibold text-ink-950">Create Course</h1>
+        <h1 className="font-display text-4xl font-semibold text-ink-950">
+          Create Course
+        </h1>
         <p className="mt-2 text-base text-ink-500">
           Launch new curriculum with a modular authoring workflow.
         </p>
@@ -32,5 +34,5 @@ export function CreateCoursePage() {
         </div>
       </Card>
     </section>
-  )
+  );
 }

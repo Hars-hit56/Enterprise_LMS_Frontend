@@ -1,29 +1,32 @@
-import { useState } from 'react'
-import { CircleAlert, GraduationCap, TrendingUp, Users } from 'lucide-react'
-import { StatCard } from '../../../components/common/StatCard'
-import { Badge } from '../../../components/ui/Badge'
-import { Card } from '../../../components/ui/Card'
-import { useUsers } from '../../users/hooks/useUsers'
-import { DashboardSection } from '../components/DashboardSection'
-import { useAdminAnalytics } from '../hooks/useAnalytics'
+import { useState } from "react";
+import { CircleAlert, GraduationCap, TrendingUp, Users } from "lucide-react";
+import { StatCard } from "../../../components/common/StatCard";
+import { Badge } from "../../../components/ui/Badge";
+import { Card } from "../../../components/ui/Card";
+import { useUsers } from "../../users/hooks/useUsers";
+import { DashboardSection } from "../components/DashboardSection";
+import { useAdminAnalytics } from "../hooks/useAnalytics";
 
-const tabs = ['User Management', 'Course Management', 'Reports'] as const
-const fallbackIcons = [Users, GraduationCap, TrendingUp, CircleAlert]
+const tabs = ["User Management", "Course Management", "Reports"] as const;
+const fallbackIcons = [Users, GraduationCap, TrendingUp, CircleAlert];
 
 export function AdminDashboardPage() {
-  const stats = useAdminAnalytics()
-  const { users } = useUsers()
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('User Management')
+  const stats = useAdminAnalytics();
+  const { users } = useUsers();
+  const [activeTab, setActiveTab] =
+    useState<(typeof tabs)[number]>("User Management");
 
   return (
     <DashboardSection
       title="Admin overview"
       description="A compact system view across users, courses, reports, and operational health."
     >
-      <div className="grid gap-4 xl:grid-cols-4">
+      <div className="grid gap-4 xl:grid-cols-3">
         {stats.map((stat, index) => {
-          const Icon = stat.icon ?? fallbackIcons[index]
-          return <StatCard key={stat.id} stat={stat} icon={<Icon size={22} />} />
+          const Icon = stat.icon ?? fallbackIcons[index];
+          return (
+            <StatCard key={stat.id} stat={stat} icon={<Icon size={22} />} />
+          );
         })}
       </div>
       <div className="inline-flex flex-wrap rounded-xl border border-line-100 bg-white p-1 shadow-[0_8px_20px_rgba(15,23,42,0.04)]">
@@ -33,7 +36,9 @@ export function AdminDashboardPage() {
             type="button"
             onClick={() => setActiveTab(tab)}
             className={`rounded-lg px-3.5 py-2 text-sm font-medium transition ${
-              activeTab === tab ? 'bg-soft text-ink-950' : 'text-ink-500 hover:text-ink-900'
+              activeTab === tab ?
+                "bg-soft text-ink-950"
+              : "text-ink-500 hover:text-ink-900"
             }`}
           >
             {tab}
@@ -58,15 +63,24 @@ export function AdminDashboardPage() {
             <tbody>
               {users.map((user) => (
                 <tr key={user.id} className="border-t border-line-100">
-                  <td className="px-5 py-3.5 font-medium text-ink-950">{user.name}</td>
+                  <td className="px-5 py-3.5 font-medium text-ink-950">
+                    {user.name}
+                  </td>
                   <td className="px-5 py-3.5 text-ink-500">{user.email}</td>
                   <td className="px-5 py-3.5">
-                    <Badge tone={user.role === 'admin' ? 'warning' : user.role === 'instructor' ? 'brand' : 'neutral'}>
+                    <Badge
+                      tone={
+                        user.role === "admin" ? "warning"
+                        : user.role === "instructor" ?
+                          "brand"
+                        : "neutral"
+                      }
+                    >
                       {user.role}
                     </Badge>
                   </td>
                   <td className="px-5 py-3.5">
-                    <Badge tone="success">{user.status ?? 'Active'}</Badge>
+                    <Badge tone="success">{user.status ?? "Active"}</Badge>
                   </td>
                   <td className="px-5 py-3.5 text-ink-500">{user.joined}</td>
                 </tr>
@@ -76,5 +90,5 @@ export function AdminDashboardPage() {
         </div>
       </Card>
     </DashboardSection>
-  )
+  );
 }

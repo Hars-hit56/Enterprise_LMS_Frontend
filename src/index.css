@@ -67,3 +67,13 @@ a {
 ::selection {
   background: rgba(37, 100, 240, 0.2);
 }
+
+/* global.css */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
