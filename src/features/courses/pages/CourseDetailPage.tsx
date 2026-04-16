@@ -169,11 +169,9 @@ export function CourseDetailPage() {
   const { assessments } = useAssessments();
   const course = courses.find((item) => item.id === courseId);
   const source = getSource(searchParams, course);
-  const isMyCoursesView = source === "my-courses";
+  const showAssessmentListCard = source === "my-courses";
   const isPurchaseView = source === "catalog" || source === "recommended";
-  const canOpenLessons = Boolean(
-    source === "my-courses" || source === "dashboard" || course?.isEnrolled,
-  );
+  const canOpenLessons = source === "my-courses";
 
   const modules = useMemo(() => {
     if (!course) {
@@ -337,9 +335,9 @@ export function CourseDetailPage() {
                       className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
                       onClick={() =>
                         setOpenModuleIds((current) =>
-                          current.includes(module.id)
-                            ? current.filter((id) => id !== module.id)
-                            : [...current, module.id],
+                          current.includes(module.id) ?
+                            current.filter((id) => id !== module.id)
+                          : [...current, module.id],
                         )
                       }
                     >
@@ -368,9 +366,9 @@ export function CourseDetailPage() {
                               type="button"
                               disabled={!canOpenLessons}
                               className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left transition ${
-                                canOpenLessons
-                                  ? "hover:bg-soft"
-                                  : "cursor-default opacity-70"
+                                canOpenLessons ? "hover:bg-soft" : (
+                                  "cursor-default opacity-70"
+                                )
                               } ${isSelected ? "bg-brand-50" : ""}`}
                               onClick={() => {
                                 if (!canOpenLessons) {
@@ -386,9 +384,9 @@ export function CourseDetailPage() {
                                 <CheckCircle2
                                   size={16}
                                   className={
-                                    canOpenLessons
-                                      ? "text-brand-600"
-                                      : "text-ink-500"
+                                    canOpenLessons ? "text-brand-600" : (
+                                      "text-ink-500"
+                                    )
                                   }
                                 />
                                 <div>
@@ -418,7 +416,7 @@ export function CourseDetailPage() {
         </div>
 
         <div className="space-y-4">
-          {isPurchaseView ? (
+          {isPurchaseView ?
             <Card className="space-y-4">
               <div className="space-y-1">
                 <p className="text-[12px] font-medium text-ink-500">
@@ -436,7 +434,7 @@ export function CourseDetailPage() {
                 Buy Now
               </Button>
             </Card>
-          ) : isMyCoursesView ? (
+          : showAssessmentListCard ?
             <Card className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="rounded-xl bg-brand-50 p-2 text-brand-600">
@@ -452,8 +450,8 @@ export function CourseDetailPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {courseAssessments.length > 0 ? (
+              <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
+                {courseAssessments.length > 0 ?
                   courseAssessments.map((assessment) => (
                     <button
                       key={assessment.id}
@@ -465,34 +463,23 @@ export function CourseDetailPage() {
                         )
                       }
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-[13px] font-medium text-ink-950">
-                            {assessment.title}
-                          </p>
-                          <p className="mt-1 text-[11px] text-ink-500">
-                            Due {assessment.dueDate}
-                          </p>
-                        </div>
-                        <Badge
-                          tone={
-                            assessment.status === "Closed" ? "neutral" : "brand"
-                          }
-                        >
-                          {assessment.status}
-                        </Badge>
+                      <div>
+                        <p className="text-[13px] font-medium text-ink-950">
+                          {assessment.title}
+                        </p>
+                        <p className="mt-1 text-[11px] text-ink-500">
+                          Due {assessment.dueDate}
+                        </p>
                       </div>
                     </button>
                   ))
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-line-200 px-4 py-5 text-[12px] text-ink-500">
+                : <div className="rounded-2xl border border-dashed border-line-200 px-4 py-5 text-[12px] text-ink-500">
                     No assessments have been added for this course yet.
                   </div>
-                )}
+                }
               </div>
             </Card>
-          ) : (
-            <Card className="space-y-4">
+          : <Card className="space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-[12px] font-medium text-ink-950">
@@ -538,7 +525,7 @@ export function CourseDetailPage() {
                 </p>
               </div>
             </Card>
-          )}
+          }
         </div>
       </div>
     </section>

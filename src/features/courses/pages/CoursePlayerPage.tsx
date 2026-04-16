@@ -1,5 +1,5 @@
-﻿import { CheckCircle2, ChevronDown, Play } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+﻿import { CheckCircle2, Play } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { EmptyState } from "../../../components/common/EmptyState";
 import { Button } from "../../../components/ui/Button";
@@ -127,7 +127,7 @@ function buildFallbackCurriculum(course: Course): ModuleItem[] {
   ];
 }
 
-export function CoursePlayerComingSoonPage() {
+export function CoursePlayerPage() {
   const { courseId } = useParams();
   const [searchParams] = useSearchParams();
   const { courses, isLoading } = useCourses("student");
@@ -157,15 +157,7 @@ export function CoursePlayerComingSoonPage() {
 
   const lessonId = searchParams.get("lessonId");
   const source = searchParams.get("source") ?? "my-courses";
-  const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
-  const [openModuleIds, setOpenModuleIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (modules.length > 0 && openModuleIds.length === 0) {
-      setOpenModuleIds(modules.slice(0, 2).map((module) => module.id));
-    }
-  }, [modules, openModuleIds.length]);
-
+  const [, setCompletedLessonIds] = useState<string[]>([]);
   const selectedLesson =
     allLessons.find((lesson) => lesson.id === lessonId) ?? allLessons[0];
 

@@ -61,7 +61,7 @@ export function StudentDashboardPage() {
             {enrolledCourses.slice(0, 3).map((course) => (
               <Link
                 key={course.id}
-                to={`/student/courses/${course.id}?source=dashboard`}
+                to={`/student/courses/${course.id}?source=my-courses`}
                 className={`block rounded-[14px] border border-line-100 px-3.5 py-3.5 
                  hover:bg-soft transition-colors duration-200 
                 `}

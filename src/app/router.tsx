@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { AssessmentComingSoonPage } from '../features/assessments/pages/AssessmentComingSoonPage'
+import { AssessmentQuizPage } from '../features/assessments/pages/AssessmentQuizPage'
 import { AssessmentsPage } from '../features/assessments/pages/AssessmentsPage'
 import { AdminDashboardPage } from '../features/analytics/pages/AdminDashboardPage'
 import { InstructorDashboardPage } from '../features/analytics/pages/InstructorDashboardPage'
@@ -9,7 +9,7 @@ import { LoginPage } from '../features/auth/pages/LoginPage'
 import { SignupPage } from '../features/auth/pages/SignupPage'
 import { CourseManagementPage } from '../features/courses/pages/CourseManagementPage'
 import { CourseDetailPage } from '../features/courses/pages/CourseDetailPage'
-import { CoursePlayerComingSoonPage } from '../features/courses/pages/CoursePlayerComingSoonPage'
+import { CoursePlayerPage } from '../features/courses/pages/CoursePlayerPage'
 import { CoursesPage } from '../features/courses/pages/CoursesPage'
 import { CreateCoursePage } from '../features/courses/pages/CreateCoursePage'
 import { MyCoursesPage } from '../features/courses/pages/MyCoursesPage'
@@ -39,9 +39,9 @@ export function AppRouter() {
             <Route path="my-courses" element={<MyCoursesPage />} />
             <Route path="courses" element={<CoursesPage />} />
             <Route path="courses/:courseId" element={<CourseDetailPage />} />
-            <Route path="courses/:courseId/learn" element={<CoursePlayerComingSoonPage />} />
+            <Route path="courses/:courseId/learn" element={<CoursePlayerPage />} />
             <Route path="assessments" element={<AssessmentsPage />} />
-            <Route path="assessments/:assessmentId" element={<AssessmentComingSoonPage />} />
+            <Route path="assessments/:assessmentId" element={<AssessmentQuizPage />} />
           </Route>
         </Route>
 
