@@ -1,8 +1,7 @@
 import { Clock3, Star, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { EmptyState } from "../../../components/common/EmptyState";
 import { Badge } from "../../../components/ui/Badge";
-import { useAuth } from "../../auth/hooks/useAuth";
 import type { Course } from "../../../types";
 
 type CourseGridVariant = "dashboard" | "catalog" | "enrolled";
@@ -55,36 +54,12 @@ function getCourseDetailSource(
 }
 
 function CourseCard({ course, variant }: CourseCardProps) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const showProgress = course.isEnrolled && variant !== "dashboard";
   const progressLabel = course.nextLesson ?? "In progress";
   const source = getCourseDetailSource(course, variant);
-  const isStudent = user?.role === "student";
 
   return (
-    <div
-      className={`overflow-hidden rounded-2xl border border-line-100 bg-white shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-[0_16px_32px_rgba(15,23,42,0.08)] ${
-        isStudent ? "cursor-pointer" : ""
-      }`}
-      onClick={() => {
-        if (!isStudent) {
-          return;
-        }
-
-        navigate(`/student/courses/${course.id}?source=${source}`);
-      }}
-      onKeyDown={(event) => {
-        if (!isStudent || (event.key !== "Enter" && event.key !== " ")) {
-          return;
-        }
-
-        event.preventDefault();
-        navigate(`/student/courses/${course.id}?source=${source}`);
-      }}
-      role={isStudent ? "link" : undefined}
-      tabIndex={isStudent ? 0 : undefined}
-    >
+    <div className="overflow-hidden rounded-2xl border border-line-100 bg-white shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-[0_16px_32px_rgba(15,23,42,0.08)]">
       <div className="grid min-h-[124px] place-items-center rounded-t-[15px] border-b border-line-100 bg-[linear-gradient(180deg,#e9eef6_0%,#dde5f0_100%)] px-4 py-4">
         <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/70 text-[22px]">
           {course.thumbnail}

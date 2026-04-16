@@ -35,7 +35,7 @@ export function CoursesPage() {
   }, [category, courses, level, search]);
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-5 h-full flex flex-col">
       <div>
         <h1 className="font-display text-[20px] font-medium tracking-tight text-ink-950">
           Courses
@@ -89,16 +89,17 @@ export function CoursesPage() {
         </div>
       </div>
 
-      {isLoading ?
+      {isLoading ? (
         <CourseGridSkeleton count={6} columns="wide" />
-      : <CourseGrid
+      ) : (
+        <CourseGrid
           courses={filteredCourses}
           columns="wide"
           variant="catalog"
           emptyTitle="No matching courses"
           emptyDescription="Try another keyword or broaden the filters to explore more of the catalog."
         />
-      }
+      )}
     </section>
   );
 }
