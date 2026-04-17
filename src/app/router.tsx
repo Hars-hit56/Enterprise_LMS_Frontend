@@ -1,9 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AssessmentQuizPage } from "../features/assessments/pages/AssessmentQuizPage";
-import { AssessmentsPage } from "../features/assessments/pages/AssessmentsPage";
 import { AdminDashboardPage } from "../features/analytics/pages/AdminDashboardPage";
 import { InstructorDashboardPage } from "../features/analytics/pages/InstructorDashboardPage";
-import { ReportsPage } from "../features/analytics/pages/ReportsPage";
 import { StudentDashboardPage } from "../features/analytics/pages/StudentDashboardPage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { SignupPage } from "../features/auth/pages/SignupPage";
@@ -23,6 +21,8 @@ import { UnauthorizedPage } from "../pages/UnauthorizedPage";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { RoleHomeRedirect } from "./routes/RoleHomeRedirect";
 import { CreateAssessmentPage } from "../features/assessments/pages/CreateAssessmentPage";
+import { EditCoursePage } from "../features/courses/pages/EditCoursePage";
+import { EditAssessmentPage } from "../features/assessments/pages/EditAssessmentPage";
 
 export function AppRouter() {
   return (
@@ -44,7 +44,6 @@ export function AppRouter() {
               path="courses/:courseId/learn"
               element={<CoursePlayerPage />}
             />
-            <Route path="assessments" element={<AssessmentsPage />} />
             <Route
               path="assessments/:assessmentId"
               element={<AssessmentQuizPage />}
@@ -57,12 +56,17 @@ export function AppRouter() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<InstructorDashboardPage />} />
             <Route path="courses" element={<CourseManagementPage />} />
-            <Route path="create-course" element={<CreateCoursePage />} />
+            <Route path="courses/create" element={<CreateCoursePage />} />
+            <Route path="courses/edit/:id" element={<EditCoursePage />} />
             <Route
-              path="create-assessment"
+              path="assessments/create"
               element={<CreateAssessmentPage />}
             />
-            <Route path="assessments" element={<AssessmentsPage />} />
+            <Route
+              path="assessments/edit/:id"
+              element={<EditAssessmentPage />}
+            />
+            {/* <Route path="assessments" element={<AssessmentsPage />} /> */}
             <Route path="students" element={<StudentsPage />} />
           </Route>
         </Route>
@@ -73,7 +77,16 @@ export function AppRouter() {
             <Route path="dashboard" element={<AdminDashboardPage />} />
             <Route path="users" element={<UserManagementPage />} />
             <Route path="courses" element={<CourseManagementPage />} />
-            <Route path="reports" element={<ReportsPage />} />
+            <Route path="courses/create" element={<CreateCoursePage />} />
+            <Route path="courses/edit/:id" element={<EditCoursePage />} />
+            <Route
+              path="assessments/create"
+              element={<CreateAssessmentPage />}
+            />
+            <Route
+              path="assessments/edit/:id"
+              element={<EditAssessmentPage />}
+            />
           </Route>
         </Route>
 

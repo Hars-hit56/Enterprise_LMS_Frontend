@@ -21,6 +21,42 @@ function filterSections(sections: MenuSection[], role: UserRole) {
     .filter((section) => section.items.length > 0);
 }
 
+/**
+ * Determines if a menu item should be highlighted based on current pathname
+ * Rules:
+ * - "Create" pages only activate their own menu item (e.g., /courses/create → "Create Course")
+ * - "Edit" pages activate the parent list item (e.g., /courses/edit/:id → "My Courses")
+ * - List pages activate themselves (e.g., /courses → "My Courses")
+ * - Dashboard pages are exact matches only
+ */
+function isMenuItemActive(
+  pathname: string,
+  basePath: string,
+  itemPath: string,
+): boolean {
+  const itemUrl = `${basePath}/${itemPath}`;
+
+  // Exact match for the item itself
+  if (pathname === itemUrl) return true;
+
+  // For "create" pages: only match exact path, don't activate parent
+  if (itemPath.endsWith("/create")) {
+    return pathname === itemUrl;
+  }
+
+  // For list pages (courses, assessments, etc.): also activate on edit sub-routes
+  // but NOT on create sub-routes
+  if (pathname.startsWith(itemUrl + "/")) {
+    // Check if it's an edit route (not create)
+    const restOfPath = pathname.slice(itemUrl.length);
+    if (restOfPath.startsWith("/edit/")) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function Sidebar({ role, basePath }: SidebarProps) {
   const { logout, user } = useAuth();
   const location = useLocation();
@@ -34,15 +70,6 @@ export function Sidebar({ role, basePath }: SidebarProps) {
   const sections = filterSections(menuConfig, activeRole);
   const isSingleSection = sections.length === 1;
   const showLabels = !isSidebarCollapsed;
-
-  const isMyCoursesDetailRoute =
-    activeRole === "student" &&
-    location.pathname.startsWith(`${activeBasePath}/courses/`) &&
-    location.search.includes("source=my-courses");
-  const isCoursesDetailRoute =
-    activeRole === "student" &&
-    location.pathname.startsWith(`${activeBasePath}/courses/`) &&
-    !location.search.includes("source=my-courses");
 
   return (
     <>
@@ -128,22 +155,19 @@ export function Sidebar({ role, basePath }: SidebarProps) {
                     <nav className="space-y-1">
                       {section.items.map((item) => {
                         const Icon = item.icon;
-                        const isMyCoursesItem = item.path === "my-courses";
-                        const isCoursesItem = item.path === "courses";
                         const itemUrl = `${activeBasePath}/${item.path}`;
+                        const isSelected = isMenuItemActive(
+                          location.pathname,
+                          activeBasePath,
+                          item.path,
+                        );
 
                         return (
                           <NavLink
                             key={item.path}
                             to={itemUrl}
-                            end={item.path === "dashboard" || item.path === "my-courses" || item.path === "courses"}
                             onClick={closeSidebar}
                             className={() => {
-                              const isSelected =
-                                location.pathname === itemUrl ||
-                                (isMyCoursesItem && isMyCoursesDetailRoute) ||
-                                (isCoursesItem && isCoursesDetailRoute);
-
                               return `group flex items-center ${
                                 showLabels ?
                                   "justify-start gap-3 px-3"

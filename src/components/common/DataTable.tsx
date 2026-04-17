@@ -51,7 +51,7 @@ export function DataTable<T>({
       </div>
       <div className="max-h-[500px] overflow-y-auto overflow-x-auto no-scrollbar">
         <table className="min-w-full text-left">
-          <thead className="sticky top-0 bg-soft text-[12px] text-ink-500">
+          <thead className="sticky top-0 bg-soft text-[12px] text-ink-500 z-20">
             <tr>
               {columns.map((column) => (
                 <th key={String(column.key)} className="px-5 py-3 font-medium">

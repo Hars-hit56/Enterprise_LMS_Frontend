@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+import { Button } from "../../../components/ui/Button";
 import { DataTable } from "../../../components/common/DataTable";
 import { RowActions } from "../../../components/common/RowActions";
 import { StatCard } from "../../../components/common/StatCard";
@@ -5,6 +7,7 @@ import { Badge } from "../../../components/ui/Badge";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useCourses } from "../hooks/useCourses";
 import { useCourseStats } from "../hooks/useCourseStats";
+import type { Course, UserRole } from "../../../types";
 
 // const columns: TableColumn<Course>[] = [
 //   { key: "title", header: "Course" },
@@ -21,14 +24,14 @@ import { useCourseStats } from "../hooks/useCourseStats";
 //   { key: "students", header: "Students" },
 //   { key: "rating", header: "Rating" },
 // ];
-const getColumns = (role) => {
+const getColumns = (role: UserRole, onEditCourse: (course: Course) => void) => {
   const baseColumns = [
     { key: "title", header: "Course" },
 
     {
       key: "status",
       header: "Status",
-      render: (course) => (
+      render: (course: Course) => (
         <Badge tone={course.status === "Published" ? "success" : "warning"}>
           {course.status}
         </Badge>
@@ -41,10 +44,12 @@ const getColumns = (role) => {
     {
       key: "actions",
       header: "",
-      render: (course) => (
+      render: (course: Course) => (
         <RowActions
-          onEdit={() => console.log("Edit", course)}
-          onDelete={() => console.log("Delete", course)}
+          onEdit={() => onEditCourse(course)}
+          onDelete={() => console.log("Delete course", course)}
+          editLabel="Edit Course"
+          deleteLabel="Delete"
         />
       ),
     },
@@ -62,10 +67,19 @@ const getColumns = (role) => {
 
 export function CourseManagementPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  if (!user) {
+    return null;
+  }
+
   const { courses } = useCourses(user.role);
   const stats = useCourseStats();
 
-  const columns = getColumns(user.role);
+  const columns = getColumns(user.role, (course) => {
+    navigate(`edit/${course.id}`);
+  });
+
   return (
     <section className="space-y-6">
       <div>
@@ -76,8 +90,19 @@ export function CourseManagementPage() {
           Manage your courses, lessons, and assessments
         </p>
       </div>
+
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={() => navigate("create")}>Create Course</Button>
+        <Button
+          variant="secondary"
+          onClick={() => navigate("../assessments/create")}
+        >
+          Create Assessment
+        </Button>
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-3">
-        {stats.map((stat, index) => {
+        {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <StatCard key={stat.id} stat={stat} icon={<Icon size={22} />} />

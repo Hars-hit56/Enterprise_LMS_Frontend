@@ -32,6 +32,32 @@ export interface Course {
   isEnrolled?: boolean;
   isRecommended?: boolean;
   price: string;
+  difficulty?: string;
+  modules?: Module[];
+}
+
+export interface Module {
+  id: number;
+  title: string;
+  lessons: Lesson[];
+}
+
+export interface Lesson {
+  id: number;
+  title: string;
+  video?: File | null;
+}
+
+export interface MenuItem {
+  label: string;
+  path: string;
+  icon: LucideIcon;
+  roles: UserRole[];
+}
+
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
 }
 
 export interface Assessment {
@@ -42,6 +68,21 @@ export interface Assessment {
   score?: number;
   submissions: number;
   status: "Upcoming" | "Open" | "Closed";
+  description?: string;
+  timeLimit?: string;
+  passingScore?: string;
+  maxAttempts?: string;
+  questions?: Question[];
+}
+
+export interface Question {
+  id: number;
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+  points: number;
+  isOpen: boolean;
 }
 
 export interface DashboardStat {
@@ -65,7 +106,12 @@ export interface MenuItem {
   roles: UserRole[];
 }
 
-export interface MenuSection {
+export interface CourseFormData {
   title: string;
-  items: MenuItem[];
+  description: string;
+  category: string;
+  difficulty: string;
+  thumbnail: File | null;
+  thumbnailPreview: string;
+  modules: Module[];
 }
