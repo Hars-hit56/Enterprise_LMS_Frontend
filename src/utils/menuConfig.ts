@@ -1,7 +1,5 @@
 import {
-  BarChart3,
   BookMarked,
-  ClipboardCheck,
   LayoutDashboard,
   Library,
   NotebookTabs,

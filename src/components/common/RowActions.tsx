@@ -44,16 +44,16 @@ export function RowActions({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 z-10  w-30 rounded-lg border border-line-200 bg-white shadow-lg p-1">
+        <div className="absolute right-0 z-10  w-28 rounded-lg border border-line-200 bg-white shadow-lg p-1">
           {onEdit && (
             <button
               onClick={() => {
                 onEdit();
                 setOpen(false);
               }}
-              className="flex items-center gap-2 w-full px-2 py-2 text-left text-sm hover:bg-soft rounded-lg"
+              className="flex items-center gap-2 w-full px-2 py-2 text-left !text-[11px] hover:bg-soft rounded-lg !font-medium"
             >
-              <Pencil size={14} />
+              <Pencil size={12} />
               {editLabel}
             </button>
           )}
@@ -63,9 +63,9 @@ export function RowActions({
                 onDelete();
                 setOpen(false);
               }}
-              className="flex items-center gap-2 w-full px-2 py-2 text-left text-sm text-red-500 hover:bg-soft"
+              className="flex items-center gap-2 w-full px-2 py-2 text-left !text-[11px] text-red-500 hover:bg-soft !font-medium"
             >
-              <Trash2 size={14} />
+              <Trash2 size={12} />
               {deleteLabel}
             </button>
           )}

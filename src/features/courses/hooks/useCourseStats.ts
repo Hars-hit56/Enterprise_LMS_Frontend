@@ -8,7 +8,7 @@ export type StatWithIcon = DashboardStat & { icon: ElementType };
 
 export function useCourseStats() {
   const { user } = useAuth();
-  const { courses } = useCourses(user.role);
+  const { courses } = useCourses(user?.role || "student");
 
   const stats: StatWithIcon[] = useMemo(() => {
     if (!courses.length) return [];
@@ -25,9 +25,6 @@ export function useCourseStats() {
       (sum, c) => sum + (c.students || 0),
       0,
     );
-
-    const avgRating =
-      courses.reduce((sum, c) => sum + (c.rating || 0), 0) / courses.length;
 
     return [
       {

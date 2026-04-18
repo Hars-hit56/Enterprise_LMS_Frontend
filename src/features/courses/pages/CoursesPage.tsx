@@ -1,6 +1,7 @@
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "../../../components/ui/Button";
+import { Select } from "../../../components/ui/Select";
 import { CourseGrid, CourseGridSkeleton } from "../components/CourseGrid";
 import { useCourses } from "../hooks/useCourses";
 
@@ -59,28 +60,28 @@ export function CoursesPage() {
           </label>
 
           <div className="flex flex-wrap items-center gap-2">
-            <select
+            <Select
               value={category}
               onChange={(event) => setCategory(event.target.value)}
-              className="rounded-xl border border-line-100 bg-white px-3 py-2 text-[12px] text-ink-700 outline-none"
+              className="rounded-xl border-line-100 bg-white px-3 py-2 text-[12px] text-ink-700"
             >
               {categories.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
               ))}
-            </select>
-            <select
+            </Select>
+            <Select
               value={level}
               onChange={(event) => setLevel(event.target.value)}
-              className="rounded-xl border border-line-100 bg-white px-3 py-2 text-[12px] text-ink-700 outline-none"
+              className="rounded-xl border-line-100 bg-white px-3 py-2 text-[12px] text-ink-700"
             >
               {levels.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
               ))}
-            </select>
+            </Select>
             <Button variant="secondary" className="gap-2 px-3 py-2 text-[12px]">
               <SlidersHorizontal size={14} />
               Filters

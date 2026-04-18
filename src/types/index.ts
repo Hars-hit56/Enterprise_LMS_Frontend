@@ -10,7 +10,7 @@ export interface User {
   role: UserRole;
   password?: string;
   avatar?: string;
-  status?: "Active" | "Invited" | "Review";
+  status?: "Active" | "Inactive" | "Invited";
   joined?: string;
 }
 

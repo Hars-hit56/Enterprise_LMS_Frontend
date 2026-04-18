@@ -1,29 +1,26 @@
-import { useState } from "react";
 import {
+  BookOpen,
+  BrainCircuit,
   CircleAlert,
   GraduationCap,
   TrendingUp,
   Users,
-  BrainCircuit,
-  BookOpen,
-  CheckCircle2,
 } from "lucide-react";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
   XAxis,
   YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 
 import { StatCard } from "../../../components/common/StatCard";
-import { Badge } from "../../../components/ui/Badge";
 import { Card } from "../../../components/ui/Card";
 import { useUsers } from "../../users/hooks/useUsers";
 import { DashboardSection } from "../components/DashboardSection";
