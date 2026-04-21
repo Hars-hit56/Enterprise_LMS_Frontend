@@ -4,17 +4,22 @@
   ChevronDown,
   ClipboardCheck,
   Clock3,
+  Eye,
+  FileText,
+  Play,
   Users,
   Star,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { EmptyState } from "../../../components/common/EmptyState";
 import { Badge } from "../../../components/ui/Badge";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import type { Course } from "../../../types";
+import { getAssessmentQuestionCount } from "../../assessments/data/assessmentContent";
 import { useAssessments } from "../../assessments/hooks/useAssessments";
+import { useAssessmentAttemptStore } from "../../assessments/store/assessmentAttemptStore";
 import { useCourses } from "../hooks/useCourses";
 
 type CourseDetailSource =
@@ -167,6 +172,7 @@ export function CourseDetailPage() {
   const [searchParams] = useSearchParams();
   const { courses, isLoading } = useCourses("student");
   const { assessments } = useAssessments();
+  const attempts = useAssessmentAttemptStore((state) => state.attempts);
   const course = courses.find((item) => item.id === courseId);
   const source = getSource(searchParams, course);
   const showAssessmentListCard = source === "my-courses";
@@ -196,12 +202,10 @@ export function CourseDetailPage() {
   );
 
   const [openModuleIds, setOpenModuleIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (modules.length > 0 && openModuleIds.length === 0) {
-      setOpenModuleIds(modules.slice(0, 2).map((module) => module.id));
-    }
-  }, [modules, openModuleIds.length]);
+  const visibleOpenModuleIds =
+    openModuleIds.length > 0
+      ? openModuleIds
+      : modules.slice(0, 2).map((module) => module.id);
 
   const activeLesson =
     allLessons.find((lesson) => course?.nextLesson?.includes(lesson.title)) ??
@@ -283,7 +287,7 @@ export function CourseDetailPage() {
         </div>
       </Card>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="space-y-4">
           <Card className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">
@@ -323,7 +327,7 @@ export function CourseDetailPage() {
 
             <div className="space-y-3">
               {modules.map((module) => {
-                const isOpen = openModuleIds.includes(module.id);
+                const isOpen = visibleOpenModuleIds.includes(module.id);
 
                 return (
                   <div
@@ -335,9 +339,9 @@ export function CourseDetailPage() {
                       className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
                       onClick={() =>
                         setOpenModuleIds((current) =>
-                          current.includes(module.id) ?
-                            current.filter((id) => id !== module.id)
-                          : [...current, module.id],
+                          current.includes(module.id)
+                            ? current.filter((id) => id !== module.id)
+                            : [...current, module.id],
                         )
                       }
                     >
@@ -366,9 +370,9 @@ export function CourseDetailPage() {
                               type="button"
                               disabled={!canOpenLessons}
                               className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left transition ${
-                                canOpenLessons ? "hover:bg-soft" : (
-                                  "cursor-default opacity-70"
-                                )
+                                canOpenLessons
+                                  ? "hover:bg-soft"
+                                  : "cursor-default opacity-70"
                               } ${isSelected ? "bg-brand-50" : ""}`}
                               onClick={() => {
                                 if (!canOpenLessons) {
@@ -384,9 +388,9 @@ export function CourseDetailPage() {
                                 <CheckCircle2
                                   size={16}
                                   className={
-                                    canOpenLessons ? "text-brand-600" : (
-                                      "text-ink-500"
-                                    )
+                                    canOpenLessons
+                                      ? "text-brand-600"
+                                      : "text-ink-500"
                                   }
                                 />
                                 <div>
@@ -416,7 +420,7 @@ export function CourseDetailPage() {
         </div>
 
         <div className="space-y-4">
-          {isPurchaseView ?
+          {isPurchaseView ? (
             <Card className="space-y-4">
               <div className="space-y-1">
                 <p className="text-[12px] font-medium text-ink-500">
@@ -434,10 +438,10 @@ export function CourseDetailPage() {
                 Buy Now
               </Button>
             </Card>
-          : showAssessmentListCard ?
+          ) : showAssessmentListCard ? (
             <Card className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="rounded-xl bg-brand-50 p-2 text-brand-600">
+                <div className="rounded-xl bg-brand-50 p-2 text-brand-600 w-10 h-10 grid place-items-center">
                   <ClipboardCheck size={18} />
                 </div>
                 <div>
@@ -451,35 +455,81 @@ export function CourseDetailPage() {
               </div>
 
               <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
-                {courseAssessments.length > 0 ?
+                {courseAssessments.length > 0 ? (
                   courseAssessments.map((assessment) => (
-                    <button
+                    <div
                       key={assessment.id}
-                      type="button"
-                      className="w-full rounded-2xl border border-line-100 px-4 py-3 text-left transition hover:border-brand-200 hover:bg-soft"
-                      onClick={() =>
-                        navigate(
-                          `/student/assessments/${assessment.id}?courseId=${course.id}`,
-                        )
-                      }
+                      className="rounded-[22px] border border-line-100 bg-white p-3"
                     >
-                      <div>
-                        <p className="text-[13px] font-medium text-ink-950">
-                          {assessment.title}
-                        </p>
-                        <p className="mt-1 text-[11px] text-ink-500">
-                          Due {assessment.dueDate}
-                        </p>
-                      </div>
-                    </button>
+                      {(() => {
+                        const attempt = attempts[assessment.id];
+                        const questionCount = getAssessmentQuestionCount(
+                          assessment.id,
+                        );
+                        const percentage =
+                          attempt && attempt.totalQuestions > 0
+                            ? Math.round(
+                                (attempt.score / attempt.totalQuestions) * 100,
+                              )
+                            : null;
+
+                        return (
+                          <div className="space-y-4">
+                            <div className="flex items-start gap-2">
+                              <div className="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-600">
+                                <FileText size={14} />
+                              </div>
+                              <div className="flex-1 ">
+                                <h3 className="text-[12px] font-semibold text-ink-950 ">
+                                  {assessment.title}
+                                </h3>
+                                <div className="flex flex-wrap items-center gap-4 text-[10px] text-ink-500 mt-1">
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <ClipboardCheck size={12} />
+                                    {questionCount} Questions
+                                  </span>
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <Clock3 size={12} />
+                                    {assessment.timeLimit ?? "15 min"}
+                                  </span>
+                                </div>
+                              </div>
+                              <Badge
+                                tone={attempt ? "success" : "neutral"}
+                                className="!text-[8px]"
+                              >
+                                {attempt ? "Completed" : "Not Started"}
+                              </Badge>
+                            </div>
+
+                            <Button
+                              type="button"
+                              fullWidth
+                              variant={attempt ? "secondary" : "primary"}
+                              className="!gap-2 !py-2 !text-[12px]"
+                              onClick={() =>
+                                navigate(
+                                  `/student/assessments/${assessment.id}?courseId=${course.id}${attempt ? "&view=result" : ""}`,
+                                )
+                              }
+                            >
+                              {attempt ? <Eye size={14} /> : <Play size={14} />}
+                              {attempt ? "View Result" : "Start Test"}
+                            </Button>
+                          </div>
+                        );
+                      })()}
+                    </div>
                   ))
-                : <div className="rounded-2xl border border-dashed border-line-200 px-4 py-5 text-[12px] text-ink-500">
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-line-200 px-4 py-5 text-[12px] text-ink-500">
                     No assessments have been added for this course yet.
                   </div>
-                }
+                )}
               </div>
             </Card>
-          : <Card className="space-y-4">
+          ) : (
+            <Card className="space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-[12px] font-medium text-ink-950">
@@ -525,7 +575,7 @@ export function CourseDetailPage() {
                 </p>
               </div>
             </Card>
-          }
+          )}
         </div>
       </div>
     </section>

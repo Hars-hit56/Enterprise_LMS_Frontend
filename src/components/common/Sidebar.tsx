@@ -74,7 +74,7 @@ export function Sidebar({ role, basePath }: SidebarProps) {
   return (
     <>
       <div
-        className={`fixed inset-0 z-30 bg-ink-950/30 transition lg:hidden ${
+        className={`fixed inset-0 z-40 bg-ink-950/55 transition lg:hidden ${
           isSidebarOpen ?
             "pointer-events-auto opacity-100"
           : "pointer-events-none opacity-0"
@@ -82,7 +82,7 @@ export function Sidebar({ role, basePath }: SidebarProps) {
         onClick={closeSidebar}
       />
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex h-screen flex-col border-r border-line-100 bg-white/95 shadow-[0_12px_30px_rgba(15,23,42,0.06)] transition-[width,transform] duration-300 lg:sticky lg:top-0 lg:translate-x-0 lg:shadow-none w-[220px] sm:w-[230px] ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-line-100 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition-[width,transform] duration-300 lg:sticky lg:top-0 lg:z-auto lg:translate-x-0 lg:bg-white/95 lg:shadow-none w-[220px] sm:w-[230px] ${
           isSidebarCollapsed ? "lg:w-[92px]" : "lg:w-[258px]"
         } ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >

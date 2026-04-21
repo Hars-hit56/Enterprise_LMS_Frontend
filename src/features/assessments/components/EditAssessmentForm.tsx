@@ -93,12 +93,12 @@ export function AssessmentForm({
     setAssessmentData((prev) => ({
       ...prev,
       questions: prev.questions.map((q) =>
-        q.id === qId ?
-          {
-            ...q,
-            options: q.options.map((opt, i) => (i === index ? value : opt)),
-          }
-        : q,
+        q.id === qId
+          ? {
+              ...q,
+              options: q.options.map((opt, i) => (i === index ? value : opt)),
+            }
+          : q,
       ),
     }));
   };
@@ -107,14 +107,14 @@ export function AssessmentForm({
     setAssessmentData((prev) => ({
       ...prev,
       questions: prev.questions.map((q) =>
-        q.id === qId ?
-          {
-            ...q,
-            options: q.options.filter((_, i) => i !== index),
-            correctIndex:
-              q.correctIndex > index ? q.correctIndex - 1 : q.correctIndex,
-          }
-        : q,
+        q.id === qId
+          ? {
+              ...q,
+              options: q.options.filter((_, i) => i !== index),
+              correctIndex:
+                q.correctIndex > index ? q.correctIndex - 1 : q.correctIndex,
+            }
+          : q,
       ),
     }));
   };
@@ -123,12 +123,12 @@ export function AssessmentForm({
     setAssessmentData((prev) => ({
       ...prev,
       questions: prev.questions.map((q) =>
-        q.id === qId ?
-          {
-            ...q,
-            options: [...q.options, ""],
-          }
-        : q,
+        q.id === qId
+          ? {
+              ...q,
+              options: [...q.options, ""],
+            }
+          : q,
       ),
     }));
   };
@@ -140,24 +140,31 @@ export function AssessmentForm({
   return (
     <section className="mx-auto max-w-3xl space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[20px] font-semibold">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[15px] font-semibold sm:text-[20px]">
             {type === "edit" ? "Edit Assessment" : "Create Assessment"}
           </h1>
-          <p className="text-[12px] text-ink-500">
-            {type === "edit" ?
-              "Update your assessment content"
-            : "Create a new assessment for this course"}
+          <p className="text-[11px] text-ink-500 sm:text-[12px]">
+            {type === "edit"
+              ? "Update your assessment content"
+              : "Create a new assessment for this course"}
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={onCancel}>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={onCancel}
+            className="px-2 py-1 !text-[11px] sm:px-3 sm:py-2 !sm:text-[14px]"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            {type === "edit" ? "Save Changes" : "Create Assessment"}
+          <Button
+            onClick={handleSave}
+            className="px-2 py-1 !text-[11px] sm:px-3 sm:py-2 !sm:text-[14px] "
+          >
+            {type === "edit" ? "Save" : "Create"}
           </Button>
         </div>
       </div>
@@ -191,7 +198,7 @@ export function AssessmentForm({
           />
         </label>
 
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
           <Input
             label="Course"
             value={assessmentData.course}

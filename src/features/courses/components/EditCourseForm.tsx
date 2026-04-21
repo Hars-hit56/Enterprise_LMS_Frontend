@@ -108,19 +108,19 @@ export function CourseForm({
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.map((m) =>
-        m.id === moduleId ?
-          {
-            ...m,
-            lessons: [
-              ...m.lessons,
-              {
-                id: Date.now() + Math.random(),
-                title: "",
-                video: null,
-              },
-            ],
-          }
-        : m,
+        m.id === moduleId
+          ? {
+              ...m,
+              lessons: [
+                ...m.lessons,
+                {
+                  id: Date.now() + Math.random(),
+                  title: "",
+                  video: null,
+                },
+              ],
+            }
+          : m,
       ),
     }));
   };
@@ -129,14 +129,14 @@ export function CourseForm({
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.map((m) =>
-        m.id === moduleId ?
-          {
-            ...m,
-            lessons: m.lessons.map((l) =>
-              l.id === lessonId ? { ...l, title: value } : l,
-            ),
-          }
-        : m,
+        m.id === moduleId
+          ? {
+              ...m,
+              lessons: m.lessons.map((l) =>
+                l.id === lessonId ? { ...l, title: value } : l,
+              ),
+            }
+          : m,
       ),
     }));
   };
@@ -145,12 +145,12 @@ export function CourseForm({
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.map((m) =>
-        m.id === moduleId ?
-          {
-            ...m,
-            lessons: m.lessons.filter((l) => l.id !== lessonId),
-          }
-        : m,
+        m.id === moduleId
+          ? {
+              ...m,
+              lessons: m.lessons.filter((l) => l.id !== lessonId),
+            }
+          : m,
       ),
     }));
   };
@@ -163,14 +163,14 @@ export function CourseForm({
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.map((m) =>
-        m.id === moduleId ?
-          {
-            ...m,
-            lessons: m.lessons.map((l) =>
-              l.id === lessonId ? { ...l, video: file } : l,
-            ),
-          }
-        : m,
+        m.id === moduleId
+          ? {
+              ...m,
+              lessons: m.lessons.map((l) =>
+                l.id === lessonId ? { ...l, video: file } : l,
+              ),
+            }
+          : m,
       ),
     }));
   };
@@ -195,27 +195,33 @@ export function CourseForm({
 
   // ---------------- UI ----------------
   return (
-    <section className="space-y-6 max-w-3xl mx-auto">
+    <section className="mx-auto max-w-3xl space-y-6">
       {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[20px] font-semibold">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="!text-[15px] font-semibold sm:text-[20px]">
             {type === "edit" ? "Edit Course" : "Create Course"}
           </h1>
-          <p className="text-[12px] text-ink-500">
-            {type === "edit" ?
-              "Update your course content"
-            : "Create a new course with modules, lessons, and assignments"}
+          <p className="!text-[11px] text-ink-500 sm:text-[12px]">
+            {type === "edit"
+              ? "Update your course content"
+              : "Create a new course with modules, lessons, and assignments"}
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={onCancel}>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={onCancel}
+            className="px-2 py-1 !text-[11px] sm:px-3 sm:py-2 !sm:text-[14px]"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            {" "}
-            {type === "edit" ? "Save Changes" : "Create Course"}
+          <Button
+            onClick={handleSave}
+            className="px-2 py-1 !text-[11px] sm:px-3 sm:py-2 !sm:text-[14px]"
+          >
+            {type === "edit" ? "Save" : "Create"}
           </Button>
         </div>
       </div>
@@ -241,7 +247,7 @@ export function CourseForm({
           />
         </label>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
             label="Category"
             value={courseData.category}
@@ -256,30 +262,31 @@ export function CourseForm({
       </Card>
 
       {/* THUMBNAIL */}
-      <Card className="space-y-4">
+      <Card className="space-y-4 overflow-hidden">
         <h2 className="font-medium">Thumbnail</h2>
 
-        <label className="flex flex-col items-center justify-center border-2 border-dashed border-line-200 rounded-lg p-6 cursor-pointer text-sm text-ink-500">
+        <label className="flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-line-200 p-5 text-center text-sm text-ink-500 sm:p-6">
           <input type="file" className="hidden" onChange={handleThumbnail} />
 
-          {courseData.thumbnailPreview ?
+          {courseData.thumbnailPreview ? (
             <img
               src={courseData.thumbnailPreview}
-              className="h-32 object-cover rounded-lg"
+              className="h-32 max-w-full rounded-lg object-cover"
             />
-          : <>
+          ) : (
+            <>
               <Upload size={20} />
               <span>Click to upload thumbnail</span>
             </>
-          }
+          )}
         </label>
       </Card>
 
       {/* MODULES */}
-      <Card className="space-y-4">
-        <div className="flex justify-between">
+      <Card className="space-y-4 overflow-hidden">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-medium">Modules & Lessons</h2>
-          <Button onClick={addModule}>
+          <Button onClick={addModule} className="w-full sm:w-auto">
             <Plus size={14} /> Add Module
           </Button>
         </div>
@@ -287,36 +294,50 @@ export function CourseForm({
         {courseData.modules.map((module) => (
           <div
             key={module.id}
-            className="border rounded-lg p-4 space-y-3 border-gray-200"
+            className="space-y-3 rounded-lg border border-gray-200 p-3 sm:p-4"
           >
-            <div className="flex justify-between items-center">
-              <Input
-                value={module.title}
-                onChange={(e) => updateModule(module.id, e.target.value)}
-              />
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+              <div className="min-w-0 flex-1">
+                <Input
+                  value={module.title}
+                  onChange={(e) => updateModule(module.id, e.target.value)}
+                />
+              </div>
               <button
                 onClick={() => deleteModule(module.id)}
-                className="text-red-500"
+                className="self-end text-red-500 sm:self-auto"
               >
                 <Trash2 size={16} />
               </button>
             </div>
 
             {module.lessons.map((lesson) => (
-              <div key={lesson.id} className="flex flex-col gap-1">
-                <div className="flex gap-2 items-center">
+              <div
+                key={lesson.id}
+                className="flex min-w-0 flex-col gap-2 rounded-lg bg-soft/40 p-3"
+              >
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input
                     value={lesson.title}
                     onChange={(e) =>
                       updateLesson(module.id, lesson.id, e.target.value)
                     }
-                    className="flex-1 border rounded-lg p-2 border border-line-200 bg-gray-50 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                    className="min-w-0 flex-1 rounded-lg border border-line-200 bg-gray-50 p-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                     placeholder="Lesson title"
                   />
 
+                  <label
+                    htmlFor={`lesson-video-${module.id}-${lesson.id}`}
+                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-line-200 bg-white px-3 py-2 text-[12px] font-medium text-ink-700 transition hover:bg-soft sm:w-auto"
+                  >
+                    <Upload size={14} />
+                    Choose file
+                  </label>
                   <input
+                    id={`lesson-video-${module.id}-${lesson.id}`}
                     type="file"
                     accept="video/*"
+                    className="hidden"
                     onChange={(e) => {
                       if (e.target.files?.[0]) {
                         uploadLessonVideo(
@@ -330,21 +351,23 @@ export function CourseForm({
 
                   <button
                     onClick={() => deleteLesson(module.id, lesson.id)}
-                    className="text-red-500"
+                    className="self-end text-red-500 sm:self-auto"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
 
                 {lesson.video && (
-                  <span className="text-xs">{lesson.video.name}</span>
+                  <span className="truncate text-xs text-ink-500">
+                    {lesson.video.name}
+                  </span>
                 )}
               </div>
             ))}
 
             <button
               onClick={() => addLesson(module.id)}
-              className="text-sm text-brand-500 flex items-center gap-1"
+              className="flex items-center gap-1 text-sm text-brand-500"
             >
               <Plus size={14} /> Add Lesson
             </button>
