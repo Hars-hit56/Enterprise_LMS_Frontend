@@ -10,10 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { StatCard } from "../../../components/common/StatCard";
-import { Badge } from "../../../components/ui/Badge";
 import { Card } from "../../../components/ui/Card";
-import type { Course, TableColumn } from "../../../types";
-import { useCourses } from "../../courses/hooks/useCourses";
 import { DashboardSection } from "../components/DashboardSection";
 import { useInstructorAnalytics } from "../hooks/useAnalytics";
 
@@ -37,35 +34,10 @@ const progressData = [
   { week: "Week 6", value: 74 },
 ];
 
-const distributionData = [
-  { name: "Development", value: 42, color: "#2563eb" },
-  { name: "Data Science", value: 28, color: "#22c55e" },
-  { name: "Design", value: 18, color: "#f59e0b" },
-  { name: "Marketing", value: 12, color: "#0ea5e9" },
-];
-
 const fallbackIcons = [Users, BookOpen, TrendingUp];
-
-const columns: TableColumn<Course>[] = [
-  { key: "title", header: "Course" },
-  { key: "instructor", header: "Instructor" },
-  {
-    key: "status",
-    header: "Status",
-    render: (course) => (
-      <Badge tone={course.status === "Published" ? "success" : "warning"}>
-        {course.status}
-      </Badge>
-    ),
-  },
-  { key: "students", header: "Students" },
-  { key: "rating", header: "Rating" },
-  { key: "price", header: "Revenue" },
-];
 
 export function InstructorDashboardPage() {
   const stats = useInstructorAnalytics();
-  const { courses } = useCourses("instructor");
 
   return (
     <DashboardSection

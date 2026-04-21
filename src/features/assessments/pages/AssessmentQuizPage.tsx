@@ -3,7 +3,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock3,
-  Eye,
   Target,
   XCircle,
 } from "lucide-react";
@@ -43,7 +42,6 @@ export function AssessmentQuizPage() {
   const { assessments } = useAssessments();
   const attempts = useAssessmentAttemptStore((state) => state.attempts);
   const saveAttempt = useAssessmentAttemptStore((state) => state.saveAttempt);
-  const clearAttempt = useAssessmentAttemptStore((state) => state.clearAttempt);
   const courseId = searchParams.get("courseId");
   const view = searchParams.get("view");
   const existingAttempt = assessmentId ? attempts[assessmentId] : undefined;

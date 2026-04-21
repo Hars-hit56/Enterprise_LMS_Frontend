@@ -466,13 +466,6 @@ export function CourseDetailPage() {
                         const questionCount = getAssessmentQuestionCount(
                           assessment.id,
                         );
-                        const percentage =
-                          attempt && attempt.totalQuestions > 0
-                            ? Math.round(
-                                (attempt.score / attempt.totalQuestions) * 100,
-                              )
-                            : null;
-
                         return (
                           <div className="space-y-4">
                             <div className="flex items-start gap-2">

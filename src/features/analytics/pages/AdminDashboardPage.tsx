@@ -22,7 +22,6 @@ import {
 
 import { StatCard } from "../../../components/common/StatCard";
 import { Card } from "../../../components/ui/Card";
-import { useUsers } from "../../users/hooks/useUsers";
 import { DashboardSection } from "../components/DashboardSection";
 import { useAdminAnalytics } from "../hooks/useAnalytics";
 
@@ -57,7 +56,6 @@ const fallbackIcons = [Users, GraduationCap, TrendingUp, CircleAlert];
 
 export function AdminDashboardPage() {
   const stats = useAdminAnalytics();
-  const { users } = useUsers();
 
   return (
     <DashboardSection

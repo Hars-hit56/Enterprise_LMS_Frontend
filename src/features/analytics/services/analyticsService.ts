@@ -1,7 +1,6 @@
 import {
   Activity,
   BookOpen,
-  CircleAlert,
   GraduationCap,
   IndianRupee,
   TrendingUp,
