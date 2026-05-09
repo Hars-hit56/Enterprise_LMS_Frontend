@@ -12,4 +12,5 @@ export const roleHomePaths: Record<UserRole, string> = {
   admin: '/admin/dashboard',
 }
 
-export const userRegistryStorageKey = 'learnhub-user-registry'
+export const authTokenStorageKey = 'learnhub-auth-token'
+export const authUserStorageKey = 'learnhub-auth-user'

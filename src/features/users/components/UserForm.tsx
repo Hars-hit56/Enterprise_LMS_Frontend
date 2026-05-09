@@ -7,7 +7,7 @@ import { Select } from "../../../components/ui/Select";
 interface UserFormProps {
   mode: "create" | "edit";
   initialData?: Partial<User>;
-  onSubmit: (data: Omit<User, "id" | "joined" | "avatar">) => void;
+  onSubmit: (data: Omit<User, "id" | "joined" | "photoUrl">) => void;
 }
 
 const UserForm: React.FC<UserFormProps> = ({ mode, initialData, onSubmit }) => {

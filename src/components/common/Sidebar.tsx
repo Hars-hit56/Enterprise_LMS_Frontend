@@ -58,7 +58,7 @@ function isMenuItemActive(
 }
 
 export function Sidebar({ role, basePath }: SidebarProps) {
-  const { logout, user } = useAuth();
+  const { isLoading, logout, user } = useAuth();
   const location = useLocation();
   const activeRole = user?.role ?? role;
   const activeBasePath = user ? `/${user.role}` : basePath;
@@ -217,9 +217,10 @@ export function Sidebar({ role, basePath }: SidebarProps) {
           <button
             type="button"
             onClick={logout}
+            disabled={isLoading}
             className={`${showLabels ? "mt-4" : "mt-0"} flex w-full items-center ${
               showLabels ? "justify-center gap-2 px-4" : "justify-center px-0"
-            } rounded-lg border border-line-200 py-2 text-[12px] font-medium text-ink-700 transition hover:bg-soft`}
+            } rounded-lg border border-line-200 py-2 text-[12px] font-medium text-ink-700 transition hover:bg-soft disabled:cursor-not-allowed disabled:opacity-60`}
             title={!showLabels ? "Sign out" : undefined}
           >
             <LogOut size={14} />

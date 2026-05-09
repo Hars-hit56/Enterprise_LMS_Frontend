@@ -1,11 +1,30 @@
-import { useAuthStore } from '../store/authStore'
+import { useDispatch, useSelector } from 'react-redux'
+import type { UserRole } from '../../../types'
+import type { AppDispatch, RootState } from '../../../store/store'
+import { clearAuthMessage, loginUser, logoutUser, signupUser } from '../store/authStore'
 
 export function useAuth() {
-  const user = useAuthStore((state) => state.user)
-  const isLoading = useAuthStore((state) => state.isLoading)
-  const login = useAuthStore((state) => state.login)
-  const signup = useAuthStore((state) => state.signup)
-  const logout = useAuthStore((state) => state.logout)
+  const dispatch = useDispatch<AppDispatch>()
+  const { user, token, isLoading, successMessage } = useSelector((state: RootState) => state.auth)
+  const login = async (email: string, password: string) => {
+    const result = await dispatch(loginUser({ email, password })).unwrap()
+    return result.user
+  }
+  const signup = async (payload: {
+    name: string
+    email: string
+    password: string
+    role: UserRole
+  }) => {
+    const result = await dispatch(signupUser(payload)).unwrap()
+    return result.user
+  }
+  const logout = async () => {
+    await dispatch(logoutUser())
+  }
+  const clearMessage = () => {
+    dispatch(clearAuthMessage())
+  }
 
-  return { user, isLoading, login, signup, logout }
+  return { user, token, isLoading, successMessage, login, signup, logout, clearMessage }
 }

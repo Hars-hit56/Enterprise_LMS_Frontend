@@ -1,80 +1,198 @@
-import type { User, UserRole } from '../../../types'
-import { mockApi } from '../../../services/mockApi'
-import { userRegistryStorageKey } from '../../../utils/constants'
+import type { AxiosError } from "axios";
+import type { UserRole } from "../../../types";
+import { apiClient } from "../../../services/apiClient";
+import {
+  authTokenStorageKey,
+  authUserStorageKey,
+} from "../../../utils/constants";
 
-const seededUsers: User[] = [
-  { id: 'u-100', name: 'John Doe', email: 'student@learnhub.dev', password: 'password123', role: 'student', status: 'Active', joined: 'Jan 15, 2025' },
-  { id: 'u-101', name: 'Sarah Chen', email: 'instructor@learnhub.dev', password: 'password123', role: 'instructor', status: 'Active', joined: 'Dec 1, 2024' },
-  { id: 'u-102', name: 'Alice Martin', email: 'admin@learnhub.dev', password: 'password123', role: 'admin', status: 'Active', joined: 'Nov 21, 2024' },
-]
-
-function readRegistry() {
-  const stored = localStorage.getItem(userRegistryStorageKey)
-  const createdUsers = stored ? (JSON.parse(stored) as User[]) : []
-  return [...seededUsers, ...createdUsers]
+export interface AuthUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  photoUrl?: string;
 }
 
-function writeRegistry(users: User[]) {
-  const customUsers = users.filter((user) => !seededUsers.some((seeded) => seeded.id === user.id))
-  localStorage.setItem(userRegistryStorageKey, JSON.stringify(customUsers))
+interface SignupPayload {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+interface SignupResponse extends AuthUser {
+  token: string;
+  photoUrl: string;
+  enrolledCourses: string[];
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+interface LoginResponse {
+  token: string;
+  user: AuthUser;
+  message: string;
+}
+
+export interface LogoutResponse {
+  message: string;
+}
+
+const pendingAuthRequests = new Map<string, Promise<unknown>>();
+
+function userFromSignup(payload: SignupResponse): AuthUser {
+  return {
+    _id: payload._id,
+    name: payload.name,
+    email: payload.email,
+    role: payload.role,
+    photoUrl: payload.photoUrl,
+  };
+}
+
+function saveToken(token: string | null) {
+  if (token) {
+    localStorage.setItem(authTokenStorageKey, token);
+    return;
+  }
+
+  localStorage.removeItem(authTokenStorageKey);
+}
+
+function saveUser(user: AuthUser | null) {
+  if (user) {
+    localStorage.setItem(authUserStorageKey, JSON.stringify(user));
+    return;
+  }
+
+  localStorage.removeItem(authUserStorageKey);
+}
+
+function getStoredToken() {
+  return localStorage.getItem(authTokenStorageKey);
+}
+
+function getStoredUser() {
+  const stored = localStorage.getItem(authUserStorageKey);
+
+  if (!stored) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(stored) as AuthUser;
+  } catch {
+    localStorage.removeItem(authUserStorageKey);
+    return null;
+  }
+}
+
+async function authRequest<T, B>(path: string, body?: B) {
+  const requestKey = `${path}:${body ? JSON.stringify(body) : ""}`;
+  const pendingRequest = pendingAuthRequests.get(requestKey) as
+    | Promise<T>
+    | undefined;
+
+  if (pendingRequest) {
+    return pendingRequest;
+  }
+
+  const request = apiClient
+    .post<T>(path, body)
+    .then((response) => response.data)
+    .catch((error) => {
+      const axiosError = error as AxiosError<{
+        message?: string;
+        error?: string;
+      }>;
+      const message =
+        axiosError.response?.data?.message ?? axiosError.response?.data?.error;
+      throw new Error(message ?? "Authentication request failed.");
+    })
+    .finally(() => {
+      pendingAuthRequests.delete(requestKey);
+    });
+
+  pendingAuthRequests.set(requestKey, request);
+  return request;
+}
+
+async function logoutRequest() {
+  try {
+    const response = await apiClient.get<LogoutResponse>("/api/auth/logout");
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<
+      { message?: string; error?: string } | string
+    >;
+    const responseData = axiosError.response?.data;
+    const message =
+      typeof responseData === "string"
+        ? undefined
+        : (responseData?.message ?? responseData?.error);
+
+    throw new Error(
+      message ??
+        `Logout failed${axiosError.response?.status ? ` (${axiosError.response.status})` : ""}.`,
+    );
+  }
 }
 
 export const authService = {
   async login(email: string, password: string) {
-    const user = readRegistry().find(
-      (entry) => entry.email.toLowerCase() === email.toLowerCase() && entry.password === password,
-    )
+    const payload: LoginPayload = { email, password };
+    const response = await authRequest<LoginResponse, LoginPayload>(
+      "/api/auth/login",
+      payload,
+    );
 
-    if (!user) {
-      throw new Error('Invalid credentials. Try one of the demo accounts below.')
-    }
+    saveToken(response.token);
+    saveUser(response.user);
 
-    return mockApi({ ...user, password: undefined })
+    return {
+      token: response.token,
+      user: response.user,
+      message: response.message,
+    };
   },
 
-  async signup(payload: {
-    name: string
-    email: string
-    password: string
-    role: UserRole
-  }) {
-    const users = readRegistry()
-    const exists = users.some((user) => user.email.toLowerCase() === payload.email.toLowerCase())
+  async signup(payload: SignupPayload) {
+    const response = await authRequest<SignupResponse, SignupPayload>(
+      "/api/auth/signup",
+      payload,
+    );
+    const user = userFromSignup(response);
 
-    if (exists) {
-      throw new Error('An account with this email already exists.')
-    }
+    saveToken(response.token);
+    saveUser(user);
 
-    const newUser: User = {
-      id: `u-${Date.now()}`,
-      name: payload.name,
-      email: payload.email,
-      password: payload.password,
-      role: payload.role,
-      status: 'Invited',
-      joined: new Date().toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    }
-
-    writeRegistry([...users, newUser])
-    return mockApi({ ...newUser, password: undefined })
+    return {
+      token: response.token,
+      user,
+    };
   },
 
-  async getUsers() {
-    return mockApi(
-      readRegistry().map((user) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-        status: user.status,
-        joined: user.joined,
-      })),
-      200,
-    )
+  async logout() {
+    try {
+      return await logoutRequest();
+    } finally {
+      saveToken(null);
+      saveUser(null);
+    }
   },
-}
+
+  getToken() {
+    return getStoredToken();
+  },
+
+  getUser() {
+    return getStoredUser();
+  },
+};

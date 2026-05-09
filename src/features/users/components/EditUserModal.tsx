@@ -7,7 +7,7 @@ interface EditUserModalProps {
   user: User | null;
   isSaving?: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<User, "id" | "joined" | "avatar">) => void;
+  onSubmit: (data: Omit<User, "id" | "joined" | "photoUrl">) => void;
 }
 
 export function EditUserModal({

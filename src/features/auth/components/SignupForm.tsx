@@ -22,6 +22,11 @@ export function SignupForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    if (isLoading) {
+      return
+    }
+
     setError('')
 
     try {

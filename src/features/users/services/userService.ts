@@ -1,23 +1,40 @@
 import type { User } from "../../../types";
-import { authService } from "../../auth/services/authService";
+import { apiClient } from "../../../services/apiClient";
+
+interface ApiUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: User["role"];
+  photoUrl?: string;
+  status?: User["status"];
+  createdAt?: string;
+}
+
+function mapUser(user: ApiUser): User {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    photoUrl: user.photoUrl,
+    status: user.status,
+    joined: user.createdAt,
+  };
+}
 
 export const userService = {
   async getUsers(): Promise<User[]> {
-    return authService.getUsers();
+    const response = await apiClient.get<ApiUser[]>("/api/users");
+    return response.data.map(mapUser);
   },
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    // Mock update - in real app, call API
-    const users = await authService.getUsers();
-    const userIndex = users.findIndex((u) => u.id === id);
-    if (userIndex === -1) throw new Error("User not found");
-    const updatedUser = { ...users[userIndex], ...updates };
-    // In mock, we can't persist, but assume it works
-    return updatedUser;
+    const response = await apiClient.put<ApiUser>(`/api/users/${id}`, updates);
+    return mapUser(response.data);
   },
 
   async deleteUser(id: string): Promise<void> {
-    // Mock delete
-    console.log("Deleting user", id);
+    await apiClient.delete(`/api/users/${id}`);
   },
 };

@@ -9,7 +9,7 @@ export interface User {
   email: string;
   role: UserRole;
   password?: string;
-  avatar?: string;
+  photoUrl?: string;
   status?: "Active" | "Inactive" | "Invited";
   joined?: string;
 }

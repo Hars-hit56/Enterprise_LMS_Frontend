@@ -31,7 +31,7 @@ export function UserManagementPage() {
     setSelectedUser(null);
   };
 
-  const handleSubmit = async (data: Omit<User, "id" | "joined" | "avatar">) => {
+  const handleSubmit = async (data: Omit<User, "id" | "joined" | "photoUrl">) => {
     if (!selectedUser) return;
     setIsSaving(true);
     try {
