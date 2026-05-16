@@ -1,10 +1,11 @@
 import axios from 'axios'
 import { authTokenStorageKey } from '../utils/constants'
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'https://enterprise-lms-backend.onrender.com/').replace(
-  /\/$/,
-  '',
-)
+const apiBaseUrl = (
+  import.meta.env.VITE_API_URL ??
+  import.meta.env.VITE_API_BASE_URL ??
+  'https://enterprise-lms-backend.onrender.com/'
+).replace(/\/$/, '')
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,
