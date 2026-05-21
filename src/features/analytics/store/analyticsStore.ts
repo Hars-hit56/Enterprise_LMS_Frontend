@@ -1,30 +1,52 @@
-import { create } from 'zustand'
-import type { StatWithIcon } from '../services/analyticsService'
-import { analyticsService } from '../services/analyticsService'
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { analyticsService } from "../services/analyticsService";
+import type { InstructorAnalyticsResponse } from "../services/analyticsService";
 
-interface AnalyticsState {
-  studentStats: StatWithIcon[]
-  instructorStats: StatWithIcon[]
-  adminStats: StatWithIcon[]
-  fetchStudentStats: () => Promise<void>
-  fetchInstructorStats: () => Promise<void>
-  fetchAdminStats: () => Promise<void>
+export interface AnalyticsState {
+  instructor: InstructorAnalyticsResponse | null;
+  isLoading: boolean;
+  error: string | null;
 }
 
-export const useAnalyticsStore = create<AnalyticsState>((set) => ({
-  studentStats: [],
-  instructorStats: [],
-  adminStats: [],
-  fetchStudentStats: async () => {
-    const studentStats = await analyticsService.getStudentStats()
-    set({ studentStats })
+const initialState: AnalyticsState = {
+  instructor: null,
+  isLoading: false,
+  error: null,
+};
+
+export const fetchInstructorAnalytics = createAsyncThunk<
+  InstructorAnalyticsResponse
+>(
+  "analytics/fetchInstructorAnalytics",
+  async () => analyticsService.getInstructorAnalytics(),
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as { analytics: AnalyticsState };
+      return !state.analytics.isLoading;
+    },
   },
-  fetchInstructorStats: async () => {
-    const instructorStats = await analyticsService.getInstructorStats()
-    set({ instructorStats })
+);
+
+const analyticsSlice = createSlice({
+  name: "analytics",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchInstructorAnalytics.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchInstructorAnalytics.fulfilled, (state, action) => {
+        state.instructor = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(fetchInstructorAnalytics.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error =
+          action.error.message ?? "Failed to load instructor analytics.";
+      });
   },
-  fetchAdminStats: async () => {
-    const adminStats = await analyticsService.getAdminStats()
-    set({ adminStats })
-  },
-}))
+});
+
+export const analyticsReducer = analyticsSlice.reducer;

@@ -8,9 +8,9 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { StatCard } from "../../../components/common/StatCard";
+import { CourseGridSkeleton } from "../../../components/skeletons/CourseGridSkeleton";
 import { Card } from "../../../components/ui/Card";
 import { useAuth } from "../../auth/hooks/useAuth";
-import { CourseGridSkeleton } from "../../courses/components/CourseGrid";
 import { useCourses } from "../../courses/hooks/useCourses";
 import { DashboardSection } from "../components/DashboardSection";
 import { useStudentAnalytics } from "../hooks/useAnalytics";

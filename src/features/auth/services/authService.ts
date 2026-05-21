@@ -1,10 +1,11 @@
 import type { AxiosError } from "axios";
 import type { UserRole } from "../../../types";
-import { apiClient } from "../../../services/apiClient";
 import {
-  authTokenStorageKey,
-  authUserStorageKey,
-} from "../../../utils/constants";
+  apiClient,
+  getAuthToken,
+  setAuthToken,
+} from "../../../services/apiClient";
+import { authUserStorageKey } from "../../../utils/constants";
 
 export interface AuthUser {
   _id: string;
@@ -26,13 +27,10 @@ interface LoginPayload {
   password: string;
 }
 
-interface SignupResponse extends AuthUser {
+interface SignupResponse {
+  message: string;
   token: string;
-  photoUrl: string;
-  enrolledCourses: string[];
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
+  user: AuthUser;
 }
 
 interface LoginResponse {
@@ -47,23 +45,8 @@ export interface LogoutResponse {
 
 const pendingAuthRequests = new Map<string, Promise<unknown>>();
 
-function userFromSignup(payload: SignupResponse): AuthUser {
-  return {
-    _id: payload._id,
-    name: payload.name,
-    email: payload.email,
-    role: payload.role,
-    photoUrl: payload.photoUrl,
-  };
-}
-
 function saveToken(token: string | null) {
-  if (token) {
-    localStorage.setItem(authTokenStorageKey, token);
-    return;
-  }
-
-  localStorage.removeItem(authTokenStorageKey);
+  setAuthToken(token);
 }
 
 function saveUser(user: AuthUser | null) {
@@ -76,7 +59,7 @@ function saveUser(user: AuthUser | null) {
 }
 
 function getStoredToken() {
-  return localStorage.getItem(authTokenStorageKey);
+  return getAuthToken();
 }
 
 function getStoredUser() {
@@ -168,14 +151,14 @@ export const authService = {
       "/api/auth/signup",
       payload,
     );
-    const user = userFromSignup(response);
 
     saveToken(response.token);
-    saveUser(user);
+    saveUser(response.user);
 
     return {
       token: response.token,
-      user,
+      user: response.user,
+      message: response.message,
     };
   },
 

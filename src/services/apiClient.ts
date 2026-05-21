@@ -9,17 +9,48 @@ const apiBaseUrl = (
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
+const publicAuthPaths = ['/api/auth/login', '/api/auth/signup']
+const authCookieName = 'token'
+
+function saveAuthCookie(token: string) {
+  document.cookie = `${authCookieName}=${encodeURIComponent(
+    token,
+  )}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
+}
+
+function clearAuthCookie() {
+  document.cookie = `${authCookieName}=; path=/; max-age=0; SameSite=Lax`
+}
+
+export function getAuthToken() {
+  return localStorage.getItem(authTokenStorageKey)
+}
+
+export function setAuthToken(token: string | null) {
+  if (token) {
+    localStorage.setItem(authTokenStorageKey, token)
+    saveAuthCookie(token)
+    apiClient.defaults.headers.common.Authorization = `Bearer ${token}`
+    return
+  }
+
+  localStorage.removeItem(authTokenStorageKey)
+  clearAuthCookie()
+  delete apiClient.defaults.headers.common.Authorization
+}
+
 apiClient.interceptors.request.use((config) => {
-  if (config.url === '/api/auth/login' || config.url === '/api/auth/signup') {
+  if (config.url && publicAuthPaths.includes(config.url)) {
     return config
   }
 
-  const token = localStorage.getItem(authTokenStorageKey)
+  const token = getAuthToken()
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -27,3 +58,5 @@ apiClient.interceptors.request.use((config) => {
 
   return config
 })
+
+setAuthToken(getAuthToken())

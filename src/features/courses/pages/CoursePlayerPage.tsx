@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { EmptyState } from "../../../components/common/EmptyState";
+import { CoursePlayerSkeleton } from "../../../components/skeletons/CourseDetailSkeleton";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import type { Course } from "../../../types";
@@ -162,12 +163,7 @@ export function CoursePlayerPage() {
     allLessons.find((lesson) => lesson.id === lessonId) ?? allLessons[0];
 
   if (isLoading) {
-    return (
-      <section className="space-y-4">
-        <div className="h-40 animate-pulse rounded-[28px] bg-line-100" />
-        <div className="h-80 animate-pulse rounded-2xl bg-line-100" />
-      </section>
-    );
+    return <CoursePlayerSkeleton />;
   }
 
   if (!course || !selectedLesson) {

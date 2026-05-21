@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { EmptyState } from "../../../components/common/EmptyState";
+import { CourseGridSkeleton } from "../../../components/skeletons/CourseGridSkeleton";
+import { PillSkeleton } from "../../../components/skeletons/PillSkeleton";
 import { Button } from "../../../components/ui/Button";
 import { useAuth } from "../../auth/hooks/useAuth";
-import { CourseGrid, CourseGridSkeleton } from "../components/CourseGrid";
+import { CourseGrid } from "../components/CourseGrid";
 import { useCourses } from "../hooks/useCourses";
 
 export function MyCoursesPage() {
@@ -31,9 +33,13 @@ export function MyCoursesPage() {
             }
           </p>
         </div>
-        <Button variant="secondary" className="px-3 py-2 text-[12px]">
-          {enrolledCourses.length} active
-        </Button>
+        {isLoading ? (
+          <PillSkeleton />
+        ) : (
+          <Button variant="secondary" className="px-3 py-2 text-[12px]">
+            {enrolledCourses.length} active
+          </Button>
+        )}
       </div>
       {isLoading ?
         <CourseGridSkeleton count={3} columns="wide" />

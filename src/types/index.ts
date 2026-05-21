@@ -15,37 +15,57 @@ export interface User {
 }
 
 export interface Course {
-  id: string;
+  _id?: string;
+  id?: string;
   title: string;
   category: string;
-  level: "Beginner" | "Intermediate" | "Advanced";
-  instructor: string;
-  progress: number;
-  lessons: number;
-  duration: string;
-  status: "Published" | "Draft" | "Review";
-  students: number;
-  rating: number;
-  thumbnail: string;
+  level?: "Beginner" | "Intermediate" | "Advanced";
+  instructor?: string;
+  progress?: number;
+  lessons?: number;
+  duration?: string;
+  status?: "Published" | "Draft" | "Review";
+  students?: number;
+  rating?: number;
+  thumbnail?: string;
   description?: string;
   nextLesson?: string;
   isEnrolled?: boolean;
   isRecommended?: boolean;
-  price: string;
+  price: string | number;
+  currency?: string;
+  isFree?: boolean;
+  enrolledStudents?: unknown[];
+  creator?: string;
+  isPublished?: boolean;
+  reviews?: unknown[];
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
   difficulty?: string;
   modules?: Module[];
 }
 
 export interface Module {
-  id: number;
-  title: string;
-  lessons: Lesson[];
+  _id?: string;
+  id?: number | string;
+  moduleTitle?: string;
+  title?: string;
+  lectures?: Array<Lesson | string>;
+  lessons?: Lesson[];
 }
 
 export interface Lesson {
-  id: number;
-  title: string;
+  _id?: string;
+  id?: number | string;
+  lectureTitle?: string;
+  title?: string;
+  videoUrl?: string | null;
+  isPreviewFree?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   video?: File | null;
+  isFree?: boolean;
 }
 
 export interface MenuItem {
@@ -111,6 +131,9 @@ export interface CourseFormData {
   description: string;
   category: string;
   difficulty: string;
+  price: string;
+  currency: string;
+  isFree: boolean;
   thumbnail: File | null;
   thumbnailPreview: string;
   modules: Module[];

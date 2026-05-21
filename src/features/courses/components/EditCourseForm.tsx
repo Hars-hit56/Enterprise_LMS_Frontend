@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import { Input } from "../../../components/ui/Input";
-import { Plus, Trash2, Upload } from "lucide-react";
+import { Select } from "../../../components/ui/Select";
+import { Info, Plus, Trash2, Upload } from "lucide-react";
 import { AssessmentList } from "../../assessments/components/AssessmentList";
 import type {
   Course,
@@ -17,8 +18,58 @@ interface CourseFormProps {
   assessments?: Assessment[];
   onEditAssessment?: (assessment: Assessment) => void;
   onDeleteAssessment?: (assessment: Assessment) => void;
-  onSave: (course: CourseFormData) => void;
+  onSave: (course: CourseFormData) => void | Promise<void>;
   onCancel?: () => void;
+  isSaving?: boolean;
+}
+
+const difficultyOptions = ["Beginner", "Intermediate"] as const;
+
+function createDefaultModules(): Module[] {
+  return [
+    {
+      id: 1,
+      title: "Module 1: Introduction",
+      lessons: [
+        {
+          id: 1,
+          title: "Welcome & Overview",
+          video: null,
+          isFree: false,
+        },
+      ],
+    },
+  ];
+}
+
+function normalizeModules(modules: Module[] | undefined, useDefault: boolean) {
+  if (!modules?.length) {
+    return useDefault ? createDefaultModules() : [];
+  }
+
+  return modules.map((module, moduleIndex) => ({
+    ...module,
+    id: module._id ?? module.id ?? `module-${moduleIndex}`,
+    title: module.moduleTitle ?? module.title ?? "",
+    lessons: (module.lectures ?? module.lessons ?? []).map(
+      (lesson, lessonIndex) => {
+        if (typeof lesson === "string") {
+          return {
+            id: lesson,
+            title: "",
+            isFree: false,
+          };
+        }
+
+        return {
+          ...lesson,
+          id: lesson._id ?? lesson.id ?? `lesson-${moduleIndex}-${lessonIndex}`,
+          title: lesson.lectureTitle ?? lesson.title ?? "",
+          isFree: lesson.isFree ?? lesson.isPreviewFree ?? false,
+        };
+      },
+    ),
+  }));
 }
 
 // ---------------- COMPONENT ----------------
@@ -30,30 +81,25 @@ export function CourseForm({
   onDeleteAssessment,
   onSave,
   onCancel,
+  isSaving = false,
 }: CourseFormProps) {
-  const defaultModules: Module[] = [
-    {
-      id: Date.now(),
-      title: "Module 1: Introduction",
-      lessons: [
-        {
-          id: Date.now() + 1,
-          title: "Welcome & Overview",
-          video: null,
-        },
-      ],
-    },
-  ];
-
   const [courseData, setCourseData] = useState<CourseFormData>({
     title: course?.title || "",
     description: course?.description || "",
     category: course?.category || "",
-    difficulty: course?.difficulty || "",
+    difficulty: course?.level || course?.difficulty || "",
+    price: course?.price ? String(course.price) : "",
+    currency: course?.currency || "INR",
+    isFree: course?.isFree || false,
     thumbnail: null,
     thumbnailPreview: course?.thumbnail || "",
-    modules: course?.modules ?? defaultModules,
+    modules: normalizeModules(course?.modules, type === "create"),
   });
+  const hasLessonMissingVideo =
+    type === "create" &&
+    courseData.modules.some((module) =>
+      (module.lessons ?? []).some((lesson) => !lesson.video),
+    );
 
   // ---------------- CLEANUP (thumbnail URL) ----------------
   useEffect(() => {
@@ -79,7 +125,7 @@ export function CourseForm({
       modules: [
         ...prev.modules,
         {
-          id: Date.now() + Math.random(),
+          id: crypto.randomUUID(),
           title: `Module ${prev.modules.length + 1}`,
           lessons: [],
         },
@@ -87,7 +133,7 @@ export function CourseForm({
     }));
   };
 
-  const updateModule = (id: number, value: string) => {
+  const updateModule = (id: number | string | undefined, value: string) => {
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.map((m) =>
@@ -96,7 +142,7 @@ export function CourseForm({
     }));
   };
 
-  const deleteModule = (id: number) => {
+  const deleteModule = (id: number | string | undefined) => {
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.filter((m) => m.id !== id),
@@ -104,7 +150,7 @@ export function CourseForm({
   };
 
   // ---------------- LESSON ----------------
-  const addLesson = (moduleId: number) => {
+  const addLesson = (moduleId: number | string | undefined) => {
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.map((m) =>
@@ -112,11 +158,12 @@ export function CourseForm({
           ? {
               ...m,
               lessons: [
-                ...m.lessons,
+                ...(m.lessons ?? []),
                 {
-                  id: Date.now() + Math.random(),
+                  id: crypto.randomUUID(),
                   title: "",
                   video: null,
+                  isFree: false,
                 },
               ],
             }
@@ -125,14 +172,18 @@ export function CourseForm({
     }));
   };
 
-  const updateLesson = (moduleId: number, lessonId: number, value: string) => {
+  const updateLesson = (
+    moduleId: number | string | undefined,
+    lessonId: number | string | undefined,
+    value: string,
+  ) => {
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.map((m) =>
         m.id === moduleId
           ? {
               ...m,
-              lessons: m.lessons.map((l) =>
+              lessons: (m.lessons ?? []).map((l) =>
                 l.id === lessonId ? { ...l, title: value } : l,
               ),
             }
@@ -141,14 +192,37 @@ export function CourseForm({
     }));
   };
 
-  const deleteLesson = (moduleId: number, lessonId: number) => {
+  const updateLessonFree = (
+    moduleId: number | string | undefined,
+    lessonId: number | string | undefined,
+    value: boolean,
+  ) => {
     setCourseData((prev) => ({
       ...prev,
       modules: prev.modules.map((m) =>
         m.id === moduleId
           ? {
               ...m,
-              lessons: m.lessons.filter((l) => l.id !== lessonId),
+              lessons: (m.lessons ?? []).map((l) =>
+                l.id === lessonId ? { ...l, isFree: value } : l,
+              ),
+            }
+          : m,
+      ),
+    }));
+  };
+
+  const deleteLesson = (
+    moduleId: number | string | undefined,
+    lessonId: number | string | undefined,
+  ) => {
+    setCourseData((prev) => ({
+      ...prev,
+      modules: prev.modules.map((m) =>
+        m.id === moduleId
+          ? {
+              ...m,
+              lessons: (m.lessons ?? []).filter((l) => l.id !== lessonId),
             }
           : m,
       ),
@@ -156,8 +230,8 @@ export function CourseForm({
   };
 
   const uploadLessonVideo = (
-    moduleId: number,
-    lessonId: number,
+    moduleId: number | string | undefined,
+    lessonId: number | string | undefined,
     file: File,
   ) => {
     setCourseData((prev) => ({
@@ -166,7 +240,7 @@ export function CourseForm({
         m.id === moduleId
           ? {
               ...m,
-              lessons: m.lessons.map((l) =>
+              lessons: (m.lessons ?? []).map((l) =>
                 l.id === lessonId ? { ...l, video: file } : l,
               ),
             }
@@ -185,12 +259,27 @@ export function CourseForm({
   };
 
   // ---------------- SAVE ----------------
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!courseData.title.trim()) {
       alert("Course title is required");
       return;
     }
-    onSave(courseData);
+
+    if (!courseData.difficulty) {
+      alert("Course difficulty is required");
+      return;
+    }
+
+    if (hasLessonMissingVideo) {
+      alert("Upload a video for every lesson before creating the course.");
+      return;
+    }
+
+    try {
+      await onSave(courseData);
+    } catch {
+      // The page/store owns the visible error state.
+    }
   };
 
   // ---------------- UI ----------------
@@ -219,9 +308,10 @@ export function CourseForm({
           </Button>
           <Button
             onClick={handleSave}
+            disabled={isSaving || hasLessonMissingVideo}
             className="px-2 py-1 !text-[11px] sm:px-3 sm:py-2 !sm:text-[14px]"
           >
-            {type === "edit" ? "Save" : "Create"}
+            {isSaving ? "Saving..." : type === "edit" ? "Save" : "Create"}
           </Button>
         </div>
       </div>
@@ -253,12 +343,44 @@ export function CourseForm({
             value={courseData.category}
             onChange={(e) => updateCourse("category", e.target.value)}
           />
-          <Input
+          <Select
             label="Difficulty"
             value={courseData.difficulty}
             onChange={(e) => updateCourse("difficulty", e.target.value)}
+          >
+            <option value="">Select difficulty</option>
+            {difficultyOptions.map((difficulty) => (
+              <option key={difficulty} value={difficulty}>
+                {difficulty}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_120px]">
+          <Input
+            label="Price"
+            type="number"
+            value={courseData.price}
+            disabled={courseData.isFree}
+            onChange={(e) => updateCourse("price", e.target.value)}
+          />
+          <Input
+            label="Currency"
+            value={courseData.currency}
+            disabled={courseData.isFree}
+            onChange={(e) => updateCourse("currency", e.target.value)}
           />
         </div>
+
+        <label className="inline-flex items-center gap-2 text-xs font-medium text-ink-900">
+          <input
+            type="checkbox"
+            checked={courseData.isFree}
+            onChange={(e) => updateCourse("isFree", e.target.checked)}
+          />
+          Free course
+        </label>
       </Card>
 
       {/* THUMBNAIL */}
@@ -285,7 +407,23 @@ export function CourseForm({
       {/* MODULES */}
       <Card className="space-y-4 overflow-hidden">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="font-medium">Modules & Lessons</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-medium">Modules & Lessons</h2>
+            {type === "create" ? (
+              <span className="group relative inline-flex">
+                <button
+                  type="button"
+                  className="grid h-6 w-6 place-items-center rounded-full text-ink-500 transition hover:bg-line-100 hover:text-ink-900 focus:bg-line-100 focus:text-ink-900 focus:outline-none"
+                  aria-label="Video upload requirement"
+                >
+                  <Info size={15} />
+                </button>
+                <span className="pointer-events-none absolute left-1/2 top-8 z-20 hidden w-64 -translate-x-1/2 rounded-lg border border-line-100 bg-white px-3 py-2 text-xs font-medium leading-5 text-ink-700 shadow-[0_12px_28px_rgba(15,23,42,0.12)] group-hover:block group-focus-within:block">
+                  Upload a video for every lesson before creating the course.
+                </span>
+              </span>
+            ) : null}
+          </div>
           <Button onClick={addModule} className="w-full sm:w-auto">
             <Plus size={14} /> Add Module
           </Button>
@@ -311,7 +449,7 @@ export function CourseForm({
               </button>
             </div>
 
-            {module.lessons.map((lesson) => (
+            {(module.lessons ?? []).map((lesson) => (
               <div
                 key={lesson.id}
                 className="flex min-w-0 flex-col gap-2 rounded-lg bg-soft/40 p-3"
@@ -332,6 +470,20 @@ export function CourseForm({
                   >
                     <Upload size={14} />
                     Choose file
+                  </label>
+                  <label className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg border border-line-200 bg-white px-3 py-2 text-[12px] font-medium text-ink-700">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(lesson.isFree)}
+                      onChange={(e) =>
+                        updateLessonFree(
+                          module.id,
+                          lesson.id,
+                          e.target.checked,
+                        )
+                      }
+                    />
+                    Free
                   </label>
                   <input
                     id={`lesson-video-${module.id}-${lesson.id}`}

@@ -1,8 +1,9 @@
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
+import { CourseGridSkeleton } from "../../../components/skeletons/CourseGridSkeleton";
 import { Button } from "../../../components/ui/Button";
 import { Select } from "../../../components/ui/Select";
-import { CourseGrid, CourseGridSkeleton } from "../components/CourseGrid";
+import { CourseGrid } from "../components/CourseGrid";
 import { useCourses } from "../hooks/useCourses";
 
 const categories = [

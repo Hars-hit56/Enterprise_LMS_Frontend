@@ -1,211 +1,196 @@
-import type { Course, UserRole } from "../../../types";
-import { mockApi } from "../../../services/mockApi";
+import type { Course, CourseFormData, UserRole } from "../../../types";
+import { apiClient } from "../../../services/apiClient";
+import type { AxiosError } from "axios";
 
-const courses: Course[] = [
-  {
-    id: "c-101",
-    title: "Design Systems for Product Teams",
-    category: "Design",
-    level: "Advanced",
-    instructor: "Sarah Chen",
-    progress: 78,
-    lessons: 24,
-    duration: "10h",
-    status: "Published",
-    students: 2340,
-    rating: 4.9,
-    thumbnail: "🎯",
-    description:
-      "Build reusable systems, patterns, and component libraries with confidence.",
-    nextLesson: "Module 5: Compound Components",
-    isEnrolled: true,
-    price: "90,000",
-  },
-  {
-    id: "c-102",
-    title: "Machine Learning Fundamentals",
-    category: "Data Science",
-    level: "Intermediate",
-    instructor: "Dr. Alex Kim",
-    progress: 42,
-    lessons: 18,
-    duration: "16h",
-    status: "Published",
-    students: 5120,
-    rating: 4.8,
-    thumbnail: "🤖",
-    description:
-      "Learn core ML workflows, models, and evaluation techniques from scratch.",
-    nextLesson: "Module 3: Neural Networks",
-    isEnrolled: true,
-    price: "90,000",
-  },
-  {
-    id: "c-103",
-    title: "UI/UX Design Masterclass",
-    category: "Design",
-    level: "Beginner",
-    instructor: "Maya Patel",
-    progress: 85,
-    lessons: 21,
-    duration: "12h",
-    status: "Published",
-    students: 3200,
-    rating: 4.7,
-    thumbnail: "🎨",
-    description:
-      "Create polished interfaces with practical UX flows and visual hierarchy.",
-    nextLesson: "Module 8: Design Systems",
-    isEnrolled: true,
-    price: "90,000",
-  },
-  {
-    id: "c-104",
-    title: "TypeScript Deep Dive",
-    category: "Development",
-    level: "Intermediate",
-    instructor: "John Smith",
-    progress: 0,
-    lessons: 14,
-    duration: "8h",
-    status: "Published",
-    students: 1890,
-    rating: 4.8,
-    thumbnail: "📘",
-    description:
-      "Master typing patterns, generics, and scalable frontend architecture.",
-    isRecommended: true,
-    price: "99,000",
-  },
-  {
-    id: "c-105",
-    title: "Cloud Architecture with AWS",
-    category: "Cloud",
-    level: "Advanced",
-    instructor: "Tom Wilson",
-    progress: 0,
-    lessons: 20,
-    duration: "14h",
-    status: "Published",
-    students: 1560,
-    rating: 4.6,
-    thumbnail: "☁️",
-    description:
-      "Design resilient cloud systems with networking, compute, and observability.",
-    isRecommended: true,
-    price: "90,000",
-  },
-  {
-    id: "c-106",
-    title: "Python for Data Analysis",
-    category: "Data Science",
-    level: "Beginner",
-    instructor: "Lisa Wang",
-    progress: 0,
-    lessons: 17,
-    duration: "10h",
-    status: "Published",
-    students: 4200,
-    rating: 4.9,
-    thumbnail: "🐍",
-    description:
-      "Analyze real datasets using Python, notebooks, and data-cleaning workflows.",
-    isRecommended: true,
-    price: "90,000",
-  },
-  {
-    id: "c-107",
-    title: "Node.js Microservices",
-    category: "Development",
-    level: "Advanced",
-    instructor: "James Lee",
-    progress: 0,
-    lessons: 19,
-    duration: "11h",
-    status: "Review",
-    students: 980,
-    rating: 4.5,
-    thumbnail: "🔧",
-    description:
-      "Ship service-oriented backend systems with queues, APIs, and monitoring.",
-    price: "90,000",
-  },
-  {
-    id: "c-108",
-    title: "Digital Marketing Strategy",
-    category: "Marketing",
-    level: "Beginner",
-    instructor: "Emma Davis",
-    progress: 0,
-    lessons: 13,
-    duration: "7h",
-    status: "Published",
-    students: 3100,
-    rating: 4.7,
-    thumbnail: "📣",
-    description:
-      "Plan channels, campaigns, and analytics with a clear growth framework.",
-    price: "90,000",
-  },
-  {
-    id: "c-109",
-    title: "Digital Marketing Strategy",
-    category: "Marketing",
-    level: "Beginner",
-    instructor: "Emma Davis",
-    progress: 0,
-    lessons: 13,
-    duration: "7h",
-    status: "Published",
-    students: 3100,
-    rating: 4.7,
-    thumbnail: "📣",
-    description:
-      "Plan channels, campaigns, and analytics with a clear growth framework.",
-    price: "90,000",
-  },
-  {
-    id: "c-110",
-    title: "Leadership Communication",
-    category: "Business",
-    level: "Intermediate",
-    instructor: "Amelia Brooks",
-    progress: 0,
-    lessons: 12,
-    duration: "6h",
-    status: "Published",
-    students: 64,
-    rating: 4.7,
-    thumbnail: "🗣️",
-    description:
-      "Lead difficult conversations with clarity, trust, and executive presence.",
-    price: "90,000",
-  },
-  {
-    id: "c-111",
-    title: "Leadership Communication",
-    category: "Business",
-    level: "Intermediate",
-    instructor: "Amelia Brooks",
-    progress: 0,
-    lessons: 12,
-    duration: "6h",
-    status: "Draft",
-    students: 64,
-    rating: 4.7,
-    thumbnail: "🗣️",
-    description:
-      "Lead difficult conversations with clarity, trust, and executive presence.",
-    price: "90,000",
-  },
-];
+type CreatorCoursesApiResponse =
+  | Course
+  | Course[]
+  | { data: Course | Course[] };
+
+type DeleteCourseApiResponse = {
+  message?: string;
+};
+
+type UpdateCourseStatusApiResponse =
+  | Course
+  | {
+      data?: Course;
+      message?: string;
+    };
+
+type FormDataValue = Blob | boolean | number | string | null | undefined;
+type FormDataFields = Record<string, FormDataValue>;
+
+function normalizeCreatorCourses(
+  response: CreatorCoursesApiResponse,
+): Course[] {
+  const courseData = "data" in response ? response.data : response;
+
+  return Array.isArray(courseData) ? courseData : [courseData];
+}
+
+function appendFormDataFields(formData: FormData, fields: FormDataFields) {
+  for (const key in fields) {
+    const value = fields[key];
+
+    if (value === null || value === undefined) {
+      continue;
+    }
+
+    formData.append(key, value instanceof Blob ? value : String(value));
+  }
+
+  return formData;
+}
+
+export function buildCreateCourseFormData(course: CourseFormData) {
+  const formData = new FormData();
+  const modules = course.modules.map((module, moduleIndex) => ({
+    title: module.title ?? "",
+    lessons: (module.lessons ?? []).map((lesson, lessonIndex) => {
+      if (lesson.video) {
+        formData.append(`video_${moduleIndex}_${lessonIndex}`, lesson.video);
+      }
+
+      return {
+        title: lesson.title ?? "",
+        isFree: Boolean(lesson.isFree),
+      };
+    }),
+  }));
+
+  return appendFormDataFields(formData, {
+    title: course.title,
+    description: course.description,
+    category: course.category,
+    difficulty: course.difficulty,
+    price: course.price,
+    currency: course.currency,
+    isFree: course.isFree,
+    modules: JSON.stringify(modules),
+    thumbnail: course.thumbnail,
+  });
+}
+
+export function buildCoursePublishStatusFormData(isPublished: boolean) {
+  return appendFormDataFields(new FormData(), { isPublished });
+}
 
 export const courseService = {
   async getCourses(role: UserRole) {
-    if (role === "admin") {
-      return mockApi(courses);
+    if (role !== "instructor") {
+      return [];
     }
 
-    return mockApi(courses.filter((course) => course.status !== "Draft"));
+    const response = await apiClient.get<CreatorCoursesApiResponse>(
+      "/api/course/getcreator",
+    );
+
+    return normalizeCreatorCourses(response.data);
+  },
+
+  async getCourseById(courseId: string) {
+    const response = await apiClient.get<Course | { data: Course }>(
+      `/api/course/getcourse/${courseId}`,
+    );
+
+    return "data" in response.data ? response.data.data : response.data;
+  },
+
+  async createCourse(course: CourseFormData) {
+    try {
+      const response = await apiClient.post<Course | { data: Course }>(
+        "/api/course/create",
+        buildCreateCourseFormData(course),
+      );
+
+      return "data" in response.data ? response.data.data : response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<{
+        message?: string;
+        error?: string;
+      }>;
+      const message =
+        axiosError.response?.data?.message ?? axiosError.response?.data?.error;
+
+      throw new Error(message ?? "Failed to create course.");
+    }
+  },
+
+  async updateCourse(courseId: string, course: CourseFormData) {
+    try {
+      const response = await apiClient.put<Course | { data: Course }>(
+        `/api/course/editcourse/${courseId}`,
+        buildCreateCourseFormData(course),
+      );
+
+      return "data" in response.data ? response.data.data : response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<{
+        message?: string;
+        error?: string;
+      }>;
+      const message =
+        axiosError.response?.data?.message ?? axiosError.response?.data?.error;
+
+      throw new Error(message ?? "Failed to update course.");
+    }
+  },
+
+  async updateCoursePublishStatus(courseId: string, isPublished: boolean) {
+    try {
+      const response = await apiClient.put<UpdateCourseStatusApiResponse>(
+        `/api/course/editcourse/${courseId}`,
+        buildCoursePublishStatusFormData(isPublished),
+      );
+      const responseBody = response.data;
+      const course =
+        "data" in responseBody
+          ? responseBody.data
+          : "title" in responseBody
+            ? responseBody
+            : undefined;
+      const message =
+        "message" in responseBody ? responseBody.message : undefined;
+
+      return {
+        courseId,
+        course,
+        isPublished,
+        message:
+          message ?? `Course ${isPublished ? "published" : "moved to draft"}.`,
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<{
+        message?: string;
+        error?: string;
+      }>;
+      const message =
+        axiosError.response?.data?.message ?? axiosError.response?.data?.error;
+
+      throw new Error(message ?? "Failed to update course status.");
+    }
+  },
+
+  async deleteCourse(courseId: string) {
+    try {
+      const response = await apiClient.delete<DeleteCourseApiResponse>(
+        `/api/course/remove/${courseId}`,
+      );
+
+      return {
+        courseId,
+        message: response.data.message ?? "Course removed",
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<{
+        message?: string;
+        error?: string;
+      }>;
+      const message =
+        axiosError.response?.data?.message ?? axiosError.response?.data?.error;
+
+      throw new Error(message ?? "Failed to delete course.");
+    }
   },
 };

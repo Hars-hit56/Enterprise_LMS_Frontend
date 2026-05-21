@@ -14,10 +14,6 @@ export function RowActions({
   editLabel = "Edit",
   deleteLabel = "Delete",
 }: RowActionsProps) {
-  if (!onEdit && !onDelete) {
-    return null;
-  }
-
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -31,6 +27,10 @@ export function RowActions({
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, []);
+
+  if (!onEdit && !onDelete) {
+    return null;
+  }
 
   return (
     <div className="relative" ref={ref}>
