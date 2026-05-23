@@ -13,9 +13,17 @@ function StatCardSkeleton() {
   );
 }
 
-export function StatCardSkeletonGrid({ count = 3 }: { count?: number }) {
+export function StatCardSkeletonGrid({
+  count = 3,
+  columns = 3,
+}: {
+  count?: number;
+  columns?: 3 | 4;
+}) {
   return (
-    <div className="grid gap-4 xl:grid-cols-3">
+    <div
+      className={`grid gap-4 ${columns === 4 ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}
+    >
       {Array.from({ length: count }).map((_, index) => (
         <StatCardSkeleton key={index} />
       ))}

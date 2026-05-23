@@ -14,3 +14,4 @@ export const API_ENDPOINT_COURSE_REMOVE = "/api/course/remove";
 export const API_ENDPOINT_ASSESSMENT = "/api/assessment";
 
 export const API_ENDPOINT_ANALYTICS_INSTRUCTOR = "/api/analytics/instructor";
+export const API_ENDPOINT_ANALYTICS_ADMIN = "/api/analytics/admin";

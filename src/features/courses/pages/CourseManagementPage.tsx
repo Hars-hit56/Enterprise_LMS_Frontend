@@ -11,8 +11,11 @@ import { CoursePortfolioSkeleton } from "../../../components/skeletons/CoursePor
 import { StatCardSkeletonGrid } from "../../../components/skeletons/StatCardSkeleton";
 import { Badge } from "../../../components/ui/Badge";
 import { Toast } from "../../../components/ui/Toast";
-import { useInstructorContentAnalytics } from "../../analytics/hooks/useAnalytics";
-import { fetchInstructorAnalytics } from "../../analytics/store/analyticsStore";
+import { useCourseManagementAnalytics } from "../../analytics/hooks/useAnalytics";
+import {
+  fetchAdminAnalytics,
+  fetchInstructorAnalytics,
+} from "../../analytics/store/analyticsStore";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useCourses } from "../hooks/useCourses";
 import type { Course, UserRole } from "../../../types";
@@ -171,7 +174,7 @@ export function CourseManagementPage() {
   const { courses, isLoading: isCoursesLoading } = useCourses(
     user?.role ?? "student",
   );
-  const { stats, isLoading, error } = useInstructorContentAnalytics();
+  const { stats, isLoading, error } = useCourseManagementAnalytics(user?.role);
   const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
   const [deleteSuccessMessage, setDeleteSuccessMessage] = useState("");
   const [statusSuccessMessage, setStatusSuccessMessage] = useState("");
@@ -188,11 +191,25 @@ export function CourseManagementPage() {
     return null;
   }
 
-  const columns = getColumns(user.role, (course) => {
-    navigate(`edit/${course._id ?? course.id}`);
-  }, setCourseToDelete, (course, isPublished) => {
-    setPendingStatusChange({ course, isPublished });
-  });
+  const columns = getColumns(
+    user.role,
+    (course) => {
+      navigate(`edit/${course._id ?? course.id}`);
+    },
+    setCourseToDelete,
+    (course, isPublished) => {
+      setPendingStatusChange({ course, isPublished });
+    },
+  );
+
+  const refreshAnalytics = () => {
+    if (user.role === "admin") {
+      void dispatch(fetchAdminAnalytics());
+      return;
+    }
+
+    void dispatch(fetchInstructorAnalytics());
+  };
 
   const handleDeleteCourse = async () => {
     const courseId = courseToDelete?._id ?? courseToDelete?.id;
@@ -206,7 +223,7 @@ export function CourseManagementPage() {
       setDeleteSuccessMessage(result.message);
       setCourseToDelete(null);
       void dispatch(fetchCourses(user.role));
-      void dispatch(fetchInstructorAnalytics());
+      refreshAnalytics();
     } catch {
       // The slice stores the API error and the toast renders it.
     }
@@ -230,7 +247,7 @@ export function CourseManagementPage() {
       setStatusSuccessMessage(result.message);
       setPendingStatusChange(null);
       void dispatch(fetchCourses(user.role));
-      void dispatch(fetchInstructorAnalytics());
+      refreshAnalytics();
     } catch {
       // The slice stores the API error and the toast renders it.
     }
@@ -275,22 +292,24 @@ export function CourseManagementPage() {
       ) : null}
       <div>
         <h1 className="font-display text-[20px] font-medium tracking-tight text-ink-950">
-          My Content
+          {user.role === "admin" ? "Courses" : "My Content"}
         </h1>
         <p className="mt-1 max-w-2xl text-[12px] text-ink-500">
           Manage your courses, lessons, and assessments
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Button onClick={() => navigate("create")}>Create Course</Button>
-        <Button
-          variant="secondary"
-          onClick={() => navigate("../assessments/create")}
-        >
-          Create Assessment
-        </Button>
-      </div>
+      {user.role !== "admin" && (
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={() => navigate("create")}>Create Course</Button>
+          <Button
+            variant="secondary"
+            onClick={() => navigate("../assessments/create")}
+          >
+            Create Assessment
+          </Button>
+        </div>
+      )}
 
       {error ? (
         <p className="text-sm font-medium text-danger-700">{error}</p>

@@ -21,6 +21,8 @@ import {
 } from "recharts";
 
 import { StatCard } from "../../../components/common/StatCard";
+import { DashboardChartSkeleton } from "../../../components/skeletons/DashboardChartSkeleton";
+import { StatCardSkeletonGrid } from "../../../components/skeletons/StatCardSkeleton";
 import { Card } from "../../../components/ui/Card";
 import { DashboardSection } from "../components/DashboardSection";
 import { useAdminAnalytics } from "../hooks/useAnalytics";
@@ -55,24 +57,37 @@ const distributionData = [
 const fallbackIcons = [Users, GraduationCap, TrendingUp, CircleAlert];
 
 export function AdminDashboardPage() {
-  const stats = useAdminAnalytics();
+  const { stats, isLoading, error } = useAdminAnalytics();
 
   return (
     <DashboardSection
       title="Admin overview"
       description="A compact system view across users, courses, reports, and operational health."
     >
+      {error ? (
+        <p className="text-sm font-medium text-danger-700">{error}</p>
+      ) : null}
       {/* STAT CARDS */}
-      <div className="grid gap-4 xl:grid-cols-3">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon ?? fallbackIcons[index];
-          return (
-            <StatCard key={stat.id} stat={stat} icon={<Icon size={22} />} />
-          );
-        })}
-      </div>
+      {isLoading ? (
+        <StatCardSkeletonGrid count={4} columns={4} />
+      ) : (
+        <div className="grid gap-4 xl:grid-cols-4">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon ?? fallbackIcons[index];
+            return (
+              <StatCard key={stat.id} stat={stat} icon={<Icon size={22} />} />
+            );
+          })}
+        </div>
+      )}
 
       {/* ANALYTICS ROW 1 */}
+      {isLoading ? (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <DashboardChartSkeleton />
+          <DashboardChartSkeleton />
+        </div>
+      ) : (
       <div className="grid gap-6 lg:grid-cols-2 mt-6">
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-6">
@@ -151,8 +166,17 @@ export function AdminDashboardPage() {
           </div>
         </Card>
       </div>
+      )}
 
       {/* ANALYTICS ROW 2 */}
+      {isLoading ? (
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <DashboardChartSkeleton />
+          <div className="lg:col-span-2">
+            <DashboardChartSkeleton />
+          </div>
+        </div>
+      ) : (
       <div className="grid gap-6 lg:grid-cols-3 mt-6">
         <Card className="p-6 col-span-1">
           <div className="flex items-center gap-2 mb-6">
@@ -204,6 +228,7 @@ export function AdminDashboardPage() {
           </div>
         </Card>
       </div>
+      )}
     </DashboardSection>
   );
 }

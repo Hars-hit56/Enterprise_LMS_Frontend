@@ -1,10 +1,17 @@
 import { useEffect } from "react";
-import { BookOpen, IndianRupee, Users, Video } from "lucide-react";
+import { BookOpen, IndianRupee, TrendingUp, Users, Video } from "lucide-react";
 import type { ElementType } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { DashboardStat } from "../../../types";
+import type { DashboardStat, UserRole } from "../../../types";
 import type { AppDispatch, RootState } from "../../../store/store";
-import { fetchInstructorAnalytics } from "../store/analyticsStore";
+import {
+  fetchAdminAnalytics,
+  fetchInstructorAnalytics,
+} from "../store/analyticsStore";
+import type {
+  AdminAnalyticsResponse,
+  InstructorAnalyticsResponse,
+} from "../services/analyticsService";
 
 export type StatWithIcon = DashboardStat & { icon: ElementType };
 
@@ -104,6 +111,104 @@ export function useInstructorContentAnalytics() {
   return { stats, isLoading, error };
 }
 
-export function useAdminAnalytics(): StatWithIcon[] {
-  return [];
+export function useAdminAnalytics() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { admin, isLoading, error } = useSelector(
+    (state: RootState) => state.analytics,
+  );
+
+  useEffect(() => {
+    void dispatch(fetchAdminAnalytics());
+  }, [dispatch]);
+
+  const stats: StatWithIcon[] = admin
+    ? [
+        {
+          id: "1",
+          label: "Total Users",
+          value: formatNumber(admin.totalUsers),
+          tone: "brand",
+          icon: Users,
+        },
+        {
+          id: "2",
+          label: "Active Courses",
+          value: formatNumber(admin.activeCourses),
+          tone: "success",
+          icon: BookOpen,
+        },
+        {
+          id: "3",
+          label: "Completion Rate",
+          value: `${admin.completionRate}%`,
+          tone: "warning",
+          icon: TrendingUp,
+        },
+        {
+          id: "4",
+          label: "Total Revenue",
+          value: formatCurrency(admin?.totalRevenue || 0),
+          tone: "brand",
+          icon: IndianRupee,
+        },
+      ]
+    : [];
+
+  return { stats, isLoading, error };
+}
+
+export function useCourseManagementAnalytics(role?: UserRole) {
+  const dispatch = useDispatch<AppDispatch>();
+  const { admin, instructor, isLoading, error } = useSelector(
+    (state: RootState) => state.analytics,
+  );
+
+  useEffect(() => {
+    if (!role || role === "student") {
+      return;
+    }
+
+    if (role === "admin") {
+      void dispatch(fetchAdminAnalytics());
+      return;
+    }
+
+    void dispatch(fetchInstructorAnalytics());
+  }, [dispatch, role]);
+
+  const dashboardData = admin || instructor;
+
+  const totalStudents = instructor
+    ? instructor.totalStudents
+    : admin?.totalEnrolledStudent || 0;
+
+  const stats: StatWithIcon[] = dashboardData
+    ? [
+        {
+          id: "1",
+          label: "Total Courses",
+          value: formatNumber(dashboardData.totalCourses || 0),
+          tone: "brand",
+          delta: `${formatNumber(dashboardData.activeCourses || 0)} published`,
+          icon: BookOpen,
+        },
+        {
+          id: "2",
+          label: "Total Lessons",
+          value: formatNumber(dashboardData.totalLessons || 0),
+          tone: "success",
+          delta: `${formatNumber(dashboardData.totalCourses || 0)} courses`,
+          icon: Video,
+        },
+        {
+          id: "3",
+          label: "Total Students",
+          value: formatNumber(totalStudents || 0),
+          tone: "warning",
+          icon: Users,
+        },
+      ]
+    : [];
+
+  return { stats, isLoading, error };
 }
