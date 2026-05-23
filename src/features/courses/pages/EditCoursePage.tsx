@@ -21,10 +21,16 @@ export function EditCoursePage() {
     (state: RootState) => state.courses,
   );
   const { course, isLoading, error } = useCourseDetail(id);
-  const { assessments } = useAssessments();
+  const { assessments } = useAssessments(id);
 
-  const courseAssessments =
-    course ? assessments.filter((a) => a.course === course.title) : [];
+  const courseAssessments = id
+    ? assessments.filter(
+        (assessment) =>
+          !assessment.courseId ||
+          assessment.courseId === id ||
+          assessment.course === id,
+      )
+    : assessments;
 
   const handleSave = async (data: CourseFormData) => {
     if (!id) {

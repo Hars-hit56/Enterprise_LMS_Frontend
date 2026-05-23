@@ -1,5 +1,6 @@
 import type { User } from "../../../types";
 import { apiClient } from "../../../services/apiClient";
+import { API_ENDPOINT_USERS } from "../../../services/apiTypes";
 
 interface ApiUser {
   _id: string;
@@ -25,16 +26,19 @@ function mapUser(user: ApiUser): User {
 
 export const userService = {
   async getUsers(): Promise<User[]> {
-    const response = await apiClient.get<ApiUser[]>("/api/users");
+    const response = await apiClient.get<ApiUser[]>(API_ENDPOINT_USERS);
     return response.data.map(mapUser);
   },
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    const response = await apiClient.put<ApiUser>(`/api/users/${id}`, updates);
+    const response = await apiClient.put<ApiUser>(
+      `${API_ENDPOINT_USERS}/${id}`,
+      updates,
+    );
     return mapUser(response.data);
   },
 
   async deleteUser(id: string): Promise<void> {
-    await apiClient.delete(`/api/users/${id}`);
+    await apiClient.delete(`${API_ENDPOINT_USERS}/${id}`);
   },
 };

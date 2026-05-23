@@ -18,7 +18,6 @@ import { Badge } from "../../../components/ui/Badge";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import type { Course } from "../../../types";
-import { getAssessmentQuestionCount } from "../../assessments/data/assessmentContent";
 import { useAssessments } from "../../assessments/hooks/useAssessments";
 import { useAssessmentAttemptStore } from "../../assessments/store/assessmentAttemptStore";
 import { useCourses } from "../hooks/useCourses";
@@ -172,7 +171,7 @@ export function CourseDetailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { courses, isLoading } = useCourses("student");
-  const { assessments } = useAssessments();
+  const { assessments } = useAssessments(courseId);
   const attempts = useAssessmentAttemptStore((state) => state.attempts);
   const course = courses.find((item) => item.id === courseId);
   const source = getSource(searchParams, course);
@@ -218,7 +217,11 @@ export function CourseDetailPage() {
     }
 
     return assessments.filter(
-      (assessment) => assessment.course === course.title,
+      (assessment) =>
+        !assessment.courseId ||
+        assessment.courseId === course.id ||
+        assessment.course === course.id ||
+        assessment.course === course.title,
     );
   }, [assessments, course]);
 
@@ -453,9 +456,7 @@ export function CourseDetailPage() {
                     >
                       {(() => {
                         const attempt = attempts[assessment.id];
-                        const questionCount = getAssessmentQuestionCount(
-                          assessment.id,
-                        );
+                        const questionCount = assessment.questions?.length ?? 0;
                         return (
                           <div className="space-y-4">
                             <div className="flex items-start gap-2">

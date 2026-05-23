@@ -1,110 +1,175 @@
-import type { Assessment } from "../../../types";
-import { mockApi } from "../../../services/mockApi";
+import type { AxiosError } from "axios";
+import { apiClient } from "../../../services/apiClient";
+import { API_ENDPOINT_ASSESSMENT } from "../../../services/apiTypes";
+import type { Assessment, Question } from "../../../types";
 
-const assessments: Assessment[] = [
-  {
-    id: "a-201",
-    title: "Component Architecture Quiz",
-    course: "React Architecture at Scale",
-    dueDate: "Apr 18, 2026",
-    description:
-      "Test your knowledge of components, props, and reusable UI architecture.",
-    timeLimit: "15 min",
-    score: 92,
-    submissions: 148,
+export interface AssessmentFormData {
+  title: string;
+  description: string;
+  course: string;
+  timeLimit: string;
+  totalMarks: string;
+  passingScore: string;
+  maxAttempts?: string;
+  questions: Question[];
+}
+
+interface ApiQuestion {
+  _id?: string;
+  point: number;
+  question: string;
+  options: string[];
+  explanation: string;
+  correctAnswer: number;
+}
+
+interface ApiAssessment {
+  _id: string;
+  title: string;
+  description?: string;
+  courseId?: string;
+  course?: string;
+  questions?: ApiQuestion[];
+  timeLimit?: number;
+  totalMarks?: number;
+  passingScore?: number;
+  maxAttempt?: number;
+  createdAt?: string;
+}
+
+interface CreateAssessmentPayload {
+  title: string;
+  description: string;
+  courseId: string;
+  questions: ApiQuestion[];
+  timeLimit: number;
+  totalMarks: number;
+  passingScore: number;
+}
+
+interface CreateAssessmentResponse {
+  success: boolean;
+  message: string;
+  assessment: ApiAssessment;
+}
+
+type AssessmentsApiResponse =
+  | ApiAssessment[]
+  | {
+      assessment?: ApiAssessment[];
+      assessments?: ApiAssessment[];
+      data?: ApiAssessment[];
+    };
+
+function extractErrorMessage(error: unknown, fallback: string) {
+  const axiosError = error as AxiosError<{ message?: string; error?: string }>;
+  return (
+    axiosError.response?.data?.message ??
+    axiosError.response?.data?.error ??
+    fallback
+  );
+}
+
+function normalizeAssessments(response: AssessmentsApiResponse) {
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  return response.assessment ?? response.assessments ?? response.data ?? [];
+}
+
+function mapApiAssessment(assessment: ApiAssessment): Assessment {
+  return {
+    id: assessment._id,
+    title: assessment.title,
+    description: assessment.description,
+    course: assessment.course ?? assessment.courseId ?? "",
+    courseId: assessment.courseId,
+    createdAt: assessment.createdAt
+      ? new Date(assessment.createdAt).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "",
+    submissions: 0,
     status: "Open",
-  },
-  {
-    id: "a-202",
-    title: "Accessibility Heuristics Review",
-    course: "Design Systems for Product Teams",
-    dueDate: "Apr 21, 2026",
-    description:
-      "Review accessibility basics including focus, labels, contrast, and semantics.",
-    timeLimit: "15 min",
-    submissions: 132,
-    status: "Upcoming",
-  },
-  {
-    id: "a-202",
-    title: "Accessibility Heuristics Review",
-    course: "Design Systems for Product Teams",
-    dueDate: "Apr 21, 2026",
-    submissions: 132,
-    status: "Upcoming",
-  },
-  {
-    id: "a-202",
-    title: "Accessibility Heuristics Review",
-    course: "Design Systems for Product Teams",
-    dueDate: "Apr 21, 2026",
-    submissions: 132,
-    status: "Upcoming",
-  },
-  {
-    id: "a-202",
-    title: "Accessibility Heuristics Review",
-    course: "Design Systems for Product Teams",
-    dueDate: "Apr 21, 2026",
-    submissions: 132,
-    status: "Upcoming",
-  },
-  {
-    id: "a-202",
-    title: "Accessibility Heuristics Review",
-    course: "Design Systems for Product Teams",
-    dueDate: "Apr 21, 2026",
-    submissions: 132,
-    status: "Upcoming",
-  },
-  {
-    id: "a-202",
-    title: "Accessibility Heuristics Review",
-    course: "Design Systems for Product Teams",
-    dueDate: "Apr 21, 2026",
-    submissions: 132,
-    status: "Upcoming",
-  },
-  {
-    id: "a-202",
-    title: "Accessibility Heuristics Review",
-    course: "Design Systems for Product Teams",
-    dueDate: "Apr 21, 2026",
-    submissions: 132,
-    status: "Upcoming",
-  },
-  {
-    id: "a-202",
-    title: "Accessibility Heuristics Review",
-    course: "Design Systems for Product Teams",
-    dueDate: "Apr 21, 2026",
-    submissions: 132,
-    status: "Upcoming",
-  },
-  {
-    id: "a-202",
-    title: "Accessibility Heuristics Review",
-    course: "Design Systems for Product Teams",
-    dueDate: "Apr 21, 2026",
-    submissions: 132,
-    status: "Upcoming",
-  },
-  {
-    id: "a-203",
-    title: "Data Storytelling Assignment",
-    course: "Data Visualization Essentials",
-    dueDate: "Apr 10, 2026",
-    description:
-      "Practice reading charts, spotting patterns, and communicating the right takeaway.",
-    timeLimit: "15 min",
-    score: 88,
-    submissions: 96,
-    status: "Closed",
-  },
-];
+    timeLimit:
+      assessment.timeLimit !== undefined ? `${assessment.timeLimit} min` : "",
+    totalMarks:
+      assessment.totalMarks !== undefined ? String(assessment.totalMarks) : "",
+    passingScore:
+      assessment.passingScore !== undefined
+        ? String(assessment.passingScore)
+        : "",
+    maxAttempts:
+      assessment.maxAttempt !== undefined ? String(assessment.maxAttempt) : "",
+    questions: assessment.questions?.map((question, index) => ({
+      id: index + 1,
+      question: question.question,
+      options: question.options,
+      correctIndex: question.correctAnswer,
+      explanation: question.explanation,
+      points: question.point,
+      isOpen: false,
+    })),
+  };
+}
+
+function toNumber(value: string, fallback: number) {
+  const parsedValue = Number(value);
+  return Number.isFinite(parsedValue) ? parsedValue : fallback;
+}
+
+function buildCreateAssessmentPayload(
+  assessment: AssessmentFormData,
+): CreateAssessmentPayload {
+  return {
+    title: assessment.title,
+    description: assessment.description,
+    courseId: assessment.course,
+    questions: assessment.questions.map((question) => ({
+      point: Number(question.points) || 0,
+      question: question.question,
+      options: question.options,
+      explanation: question.explanation,
+      correctAnswer: question.correctIndex,
+    })),
+    timeLimit: toNumber(assessment.timeLimit, 0),
+    totalMarks: toNumber(assessment.totalMarks, 0),
+    passingScore: toNumber(assessment.passingScore, 0),
+  };
+}
 
 export const assessmentService = {
-  async getAssessments() {
-    return mockApi(assessments);
+  async getAssessments(courseId?: string) {
+    try {
+      const endpoint = `${API_ENDPOINT_ASSESSMENT}/${courseId}`;
+
+      const response = await apiClient.get<AssessmentsApiResponse>(endpoint);
+      return normalizeAssessments(response.data).map(mapApiAssessment);
+    } catch (error) {
+      throw new Error(
+        extractErrorMessage(error, "Failed to load assessments."),
+      );
+    }
+  },
+
+  async createAssessment(assessment: AssessmentFormData) {
+    try {
+      const response = await apiClient.post<CreateAssessmentResponse>(
+        API_ENDPOINT_ASSESSMENT,
+        buildCreateAssessmentPayload(assessment),
+      );
+
+      return {
+        assessment: mapApiAssessment(response.data.assessment),
+        message: response.data.message,
+      };
+    } catch (error) {
+      throw new Error(
+        extractErrorMessage(error, "Failed to create assessment."),
+      );
+    }
   },
 };

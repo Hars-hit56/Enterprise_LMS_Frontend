@@ -1,5 +1,6 @@
 import type { AxiosError } from "axios";
 import { apiClient } from "../../../services/apiClient";
+import { API_ENDPOINT_ANALYTICS_INSTRUCTOR } from "../../../services/apiTypes";
 
 export interface InstructorAnalyticsResponse {
   totalCourses: number;
@@ -13,7 +14,7 @@ export const analyticsService = {
   async getInstructorAnalytics() {
     try {
       const response = await apiClient.get<InstructorAnalyticsResponse>(
-        "/api/analytics/instructor",
+        API_ENDPOINT_ANALYTICS_INSTRUCTOR,
       );
 
       return response.data;

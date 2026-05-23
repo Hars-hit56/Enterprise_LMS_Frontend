@@ -24,6 +24,8 @@ interface CourseFormProps {
 }
 
 const difficultyOptions = ["Beginner", "Intermediate"] as const;
+const categoryOptions = ["Mobile Development", "Web Development"] as const;
+const currencyOptions = ["INR"] as const;
 
 function createDefaultModules(): Module[] {
   return [
@@ -116,6 +118,14 @@ export function CourseForm({
     value: CourseFormData[K],
   ) => {
     setCourseData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updateFreeCourse = (isFree: boolean) => {
+    setCourseData((prev) => ({
+      ...prev,
+      isFree,
+      price: isFree ? "" : prev.price,
+    }));
   };
 
   // ---------------- MODULE ----------------
@@ -338,11 +348,18 @@ export function CourseForm({
         </label>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input
+          <Select
             label="Category"
             value={courseData.category}
             onChange={(e) => updateCourse("category", e.target.value)}
-          />
+          >
+            <option value="">Select category</option>
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </Select>
           <Select
             label="Difficulty"
             value={courseData.difficulty}
@@ -357,27 +374,33 @@ export function CourseForm({
           </Select>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_120px]">
-          <Input
-            label="Price"
-            type="number"
-            value={courseData.price}
-            disabled={courseData.isFree}
-            onChange={(e) => updateCourse("price", e.target.value)}
-          />
-          <Input
-            label="Currency"
-            value={courseData.currency}
-            disabled={courseData.isFree}
-            onChange={(e) => updateCourse("currency", e.target.value)}
-          />
-        </div>
+        {!courseData.isFree ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_120px]">
+            <Input
+              label="Price"
+              type="number"
+              value={courseData.price}
+              onChange={(e) => updateCourse("price", e.target.value)}
+            />
+            <Select
+              label="Currency"
+              value={courseData.currency}
+              onChange={(e) => updateCourse("currency", e.target.value)}
+            >
+              {currencyOptions.map((currency) => (
+                <option key={currency} value={currency}>
+                  {currency}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
 
         <label className="inline-flex items-center gap-2 text-xs font-medium text-ink-900">
           <input
             type="checkbox"
             checked={courseData.isFree}
-            onChange={(e) => updateCourse("isFree", e.target.checked)}
+            onChange={(e) => updateFreeCourse(e.target.checked)}
           />
           Free course
         </label>
@@ -476,11 +499,7 @@ export function CourseForm({
                       type="checkbox"
                       checked={Boolean(lesson.isFree)}
                       onChange={(e) =>
-                        updateLessonFree(
-                          module.id,
-                          lesson.id,
-                          e.target.checked,
-                        )
+                        updateLessonFree(module.id, lesson.id, e.target.checked)
                       }
                     />
                     Free

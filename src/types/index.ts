@@ -84,12 +84,14 @@ export interface Assessment {
   id: string;
   title: string;
   course: string;
-  dueDate: string;
+  courseId?: string;
+  createdAt: string;
   score?: number;
   submissions: number;
   status: "Upcoming" | "Open" | "Closed";
   description?: string;
   timeLimit?: string;
+  totalMarks?: string;
   passingScore?: string;
   maxAttempts?: string;
   questions?: Question[];

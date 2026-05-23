@@ -3,65 +3,61 @@ import { useState } from "react";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import { Input } from "../../../components/ui/Input";
-import type { Assessment, Question } from "../../../types";
+import { Select } from "../../../components/ui/Select";
+import type { Assessment, Course, Question } from "../../../types";
+import type { AssessmentFormData } from "../services/assessmentService";
 
 interface AssessmentFormProps {
   type: "create" | "edit";
   assessment?: Assessment;
-  onSave: (assessment: any) => void;
+  courses?: Course[];
+  isCoursesLoading?: boolean;
+  onSave: (assessment: AssessmentFormData) => void | Promise<void>;
   onCancel?: () => void;
+  isSaving?: boolean;
+}
+
+function createEmptyQuestion(id: number): Question {
+  return {
+    id,
+    question: "",
+    options: ["", "", "", ""],
+    correctIndex: 0,
+    explanation: "",
+    points: 10,
+    isOpen: true,
+  };
 }
 
 export function AssessmentForm({
   type,
   assessment,
+  courses = [],
+  isCoursesLoading = false,
   onSave,
   onCancel,
+  isSaving = false,
 }: AssessmentFormProps) {
-  const [assessmentData, setAssessmentData] = useState<{
-    title: string;
-    description: string;
-    course: string;
-    timeLimit: string;
-    passingScore: string;
-    maxAttempts: string;
-    questions: Question[];
-  }>({
+  const [nextQuestionId, setNextQuestionId] = useState(
+    (assessment?.questions?.length ?? 0) + 1,
+  );
+  const [assessmentData, setAssessmentData] = useState<AssessmentFormData>({
     title: assessment?.title || "",
     description: assessment?.description || "",
     course: assessment?.course || "",
     timeLimit: assessment?.timeLimit || "",
+    totalMarks: assessment?.totalMarks || "",
     passingScore: assessment?.passingScore || "",
-    maxAttempts: assessment?.maxAttempts || "",
-    questions: assessment?.questions || [
-      {
-        id: Date.now(),
-        question: "",
-        options: ["", "", "", ""],
-        correctIndex: 0,
-        explanation: "",
-        points: 10,
-        isOpen: true,
-      },
-    ],
+    // maxAttempts: assessment?.maxAttempts || "",
+    questions: assessment?.questions || [createEmptyQuestion(1)],
   });
 
   const addQuestion = () => {
     setAssessmentData((prev) => ({
       ...prev,
-      questions: [
-        ...prev.questions,
-        {
-          id: Date.now(),
-          question: "",
-          options: ["", "", "", ""],
-          correctIndex: 0,
-          explanation: "",
-          points: 10,
-          isOpen: true,
-        },
-      ],
+      questions: [...prev.questions, createEmptyQuestion(nextQuestionId + 1)],
     }));
+    setNextQuestionId((current) => current + 1);
   };
 
   const deleteQuestion = (id: number) => {
@@ -80,7 +76,11 @@ export function AssessmentForm({
     }));
   };
 
-  const updateQuestion = (id: number, key: string, value: any) => {
+  const updateQuestion = <Key extends keyof Question>(
+    id: number,
+    key: Key,
+    value: Question[Key],
+  ) => {
     setAssessmentData((prev) => ({
       ...prev,
       questions: prev.questions.map((q) =>
@@ -133,8 +133,8 @@ export function AssessmentForm({
     }));
   };
 
-  const handleSave = () => {
-    onSave(assessmentData);
+  const handleSave = async () => {
+    await onSave(assessmentData);
   };
 
   return (
@@ -142,10 +142,10 @@ export function AssessmentForm({
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="text-[15px] font-semibold sm:text-[20px]">
+          <h1 className="!text-[15px] font-semibold sm:text-[20px]">
             {type === "edit" ? "Edit Assessment" : "Create Assessment"}
           </h1>
-          <p className="text-[11px] text-ink-500 sm:text-[12px]">
+          <p className="!text-[11px] text-ink-500 sm:text-[12px]">
             {type === "edit"
               ? "Update your assessment content"
               : "Create a new assessment for this course"}
@@ -156,15 +156,17 @@ export function AssessmentForm({
           <Button
             variant="secondary"
             onClick={onCancel}
+            disabled={isSaving}
             className="px-2 py-1 !text-[11px] sm:px-3 sm:py-2 !sm:text-[14px]"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
+            disabled={isSaving}
             className="px-2 py-1 !text-[11px] sm:px-3 sm:py-2 !sm:text-[14px] "
           >
-            {type === "edit" ? "Save" : "Create"}
+            {isSaving ? "Saving..." : type === "edit" ? "Save" : "Create"}
           </Button>
         </div>
       </div>
@@ -199,14 +201,27 @@ export function AssessmentForm({
         </label>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-          <Input
+          <Select
             label="Course"
             value={assessmentData.course}
             onChange={(e) =>
               setAssessmentData((prev) => ({ ...prev, course: e.target.value }))
             }
-            placeholder="Select"
-          />
+            disabled={isCoursesLoading || isSaving}
+          >
+            <option value="">
+              {isCoursesLoading ? "Loading courses..." : "Select course"}
+            </option>
+            {courses.map((course) => {
+              const courseId = course._id ?? course.id ?? "";
+
+              return (
+                <option key={courseId} value={courseId}>
+                  {course.title}
+                </option>
+              );
+            })}
+          </Select>
           <Input
             label="Time Limit"
             value={assessmentData.timeLimit}
@@ -219,6 +234,17 @@ export function AssessmentForm({
             placeholder="30 min"
           />
           <Input
+            label="Total Marks"
+            value={assessmentData.totalMarks}
+            onChange={(e) =>
+              setAssessmentData((prev) => ({
+                ...prev,
+                totalMarks: e.target.value,
+              }))
+            }
+            placeholder="100"
+          />
+          <Input
             label="Passing Score"
             value={assessmentData.passingScore}
             onChange={(e) =>
@@ -229,7 +255,7 @@ export function AssessmentForm({
             }
             placeholder="70%"
           />
-          <Input
+          {/* <Input
             label="Max Attempts"
             value={assessmentData.maxAttempts}
             onChange={(e) =>
@@ -239,7 +265,7 @@ export function AssessmentForm({
               }))
             }
             placeholder="Select"
-          />
+          /> */}
         </div>
       </Card>
 
@@ -275,7 +301,9 @@ export function AssessmentForm({
               <Input
                 label="Points"
                 value={q.points}
-                onChange={(e) => updateQuestion(q.id, "points", e.target.value)}
+                onChange={(e) =>
+                  updateQuestion(q.id, "points", Number(e.target.value) || 0)
+                }
               />
 
               <label className="text-xs font-medium text-ink-900">

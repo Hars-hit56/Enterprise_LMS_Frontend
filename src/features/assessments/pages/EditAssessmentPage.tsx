@@ -3,6 +3,7 @@ import { AssessmentForm } from "../components/EditAssessmentForm";
 import { useAssessments } from "../hooks/useAssessments";
 import { useCourses } from "../../courses/hooks/useCourses";
 import { useAuth } from "../../auth/hooks/useAuth";
+import type { AssessmentFormData } from "../services/assessmentService";
 
 export function EditAssessmentPage() {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +16,7 @@ export function EditAssessmentPage() {
   const course =
     assessment ? courses.find((c) => c.title === assessment.course) : null;
 
-  const handleSave = (data: any) => {
+  const handleSave = (data: AssessmentFormData) => {
     // TODO: save assessment
     console.log("Save assessment", data);
     // Navigate back to course edit

@@ -1,5 +1,12 @@
 import type { Course, CourseFormData, UserRole } from "../../../types";
 import { apiClient } from "../../../services/apiClient";
+import {
+  API_ENDPOINT_COURSE_CREATE,
+  API_ENDPOINT_COURSE_EDIT,
+  API_ENDPOINT_COURSE_GET_BY_ID,
+  API_ENDPOINT_COURSE_GET_CREATOR,
+  API_ENDPOINT_COURSE_REMOVE,
+} from "../../../services/apiTypes";
 import type { AxiosError } from "axios";
 
 type CreatorCoursesApiResponse =
@@ -83,7 +90,7 @@ export const courseService = {
     }
 
     const response = await apiClient.get<CreatorCoursesApiResponse>(
-      "/api/course/getcreator",
+      API_ENDPOINT_COURSE_GET_CREATOR,
     );
 
     return normalizeCreatorCourses(response.data);
@@ -91,7 +98,7 @@ export const courseService = {
 
   async getCourseById(courseId: string) {
     const response = await apiClient.get<Course | { data: Course }>(
-      `/api/course/getcourse/${courseId}`,
+      `${API_ENDPOINT_COURSE_GET_BY_ID}/${courseId}`,
     );
 
     return "data" in response.data ? response.data.data : response.data;
@@ -100,7 +107,7 @@ export const courseService = {
   async createCourse(course: CourseFormData) {
     try {
       const response = await apiClient.post<Course | { data: Course }>(
-        "/api/course/create",
+        API_ENDPOINT_COURSE_CREATE,
         buildCreateCourseFormData(course),
       );
 
@@ -120,7 +127,7 @@ export const courseService = {
   async updateCourse(courseId: string, course: CourseFormData) {
     try {
       const response = await apiClient.put<Course | { data: Course }>(
-        `/api/course/editcourse/${courseId}`,
+        `${API_ENDPOINT_COURSE_EDIT}/${courseId}`,
         buildCreateCourseFormData(course),
       );
 
@@ -140,7 +147,7 @@ export const courseService = {
   async updateCoursePublishStatus(courseId: string, isPublished: boolean) {
     try {
       const response = await apiClient.put<UpdateCourseStatusApiResponse>(
-        `/api/course/editcourse/${courseId}`,
+        `${API_ENDPOINT_COURSE_EDIT}/${courseId}`,
         buildCoursePublishStatusFormData(isPublished),
       );
       const responseBody = response.data;
@@ -175,7 +182,7 @@ export const courseService = {
   async deleteCourse(courseId: string) {
     try {
       const response = await apiClient.delete<DeleteCourseApiResponse>(
-        `/api/course/remove/${courseId}`,
+        `${API_ENDPOINT_COURSE_REMOVE}/${courseId}`,
       );
 
       return {

@@ -5,6 +5,11 @@ import {
   getAuthToken,
   setAuthToken,
 } from "../../../services/apiClient";
+import {
+  API_ENDPOINT_AUTH_LOGIN,
+  API_ENDPOINT_AUTH_LOGOUT,
+  API_ENDPOINT_AUTH_SIGNUP,
+} from "../../../services/apiTypes";
 import { authUserStorageKey } from "../../../utils/constants";
 
 export interface AuthUser {
@@ -109,7 +114,9 @@ async function authRequest<T, B>(path: string, body?: B) {
 
 async function logoutRequest() {
   try {
-    const response = await apiClient.get<LogoutResponse>("/api/auth/logout");
+    const response = await apiClient.get<LogoutResponse>(
+      API_ENDPOINT_AUTH_LOGOUT,
+    );
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<
@@ -132,7 +139,7 @@ export const authService = {
   async login(email: string, password: string) {
     const payload: LoginPayload = { email, password };
     const response = await authRequest<LoginResponse, LoginPayload>(
-      "/api/auth/login",
+      API_ENDPOINT_AUTH_LOGIN,
       payload,
     );
 
@@ -148,7 +155,7 @@ export const authService = {
 
   async signup(payload: SignupPayload) {
     const response = await authRequest<SignupResponse, SignupPayload>(
-      "/api/auth/signup",
+      API_ENDPOINT_AUTH_SIGNUP,
       payload,
     );
 

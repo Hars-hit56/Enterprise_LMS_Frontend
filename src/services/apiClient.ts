@@ -1,5 +1,9 @@
 import axios from 'axios'
 import { authTokenStorageKey } from '../utils/constants'
+import {
+  API_ENDPOINT_AUTH_LOGIN,
+  API_ENDPOINT_AUTH_SIGNUP,
+} from './apiTypes'
 
 const apiBaseUrl = (
   import.meta.env.VITE_API_URL ??
@@ -15,7 +19,7 @@ export const apiClient = axios.create({
   },
 })
 
-const publicAuthPaths = ['/api/auth/login', '/api/auth/signup']
+const publicAuthPaths = [API_ENDPOINT_AUTH_LOGIN, API_ENDPOINT_AUTH_SIGNUP]
 const authCookieName = 'token'
 
 function saveAuthCookie(token: string) {

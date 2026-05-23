@@ -1,14 +1,17 @@
-import { useEffect } from 'react'
-import { useAssessmentStore } from '../store/assessmentStore'
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../../store/store";
+import { fetchAssessments } from "../store/assessmentStore";
 
-export function useAssessments() {
-  const assessments = useAssessmentStore((state) => state.assessments)
-  const isLoading = useAssessmentStore((state) => state.isLoading)
-  const fetchAssessments = useAssessmentStore((state) => state.fetchAssessments)
+export function useAssessments(courseId?: string) {
+  const dispatch = useDispatch<AppDispatch>();
+  const { assessments, error, isLoading } = useSelector(
+    (state: RootState) => state.assessments,
+  );
 
   useEffect(() => {
-    void fetchAssessments()
-  }, [fetchAssessments])
+    void dispatch(fetchAssessments(courseId));
+  }, [courseId, dispatch]);
 
-  return { assessments, isLoading }
+  return { assessments, error, isLoading };
 }

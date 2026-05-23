@@ -17,7 +17,6 @@ import { EmptyState } from "../../../components/common/EmptyState";
 import { Badge } from "../../../components/ui/Badge";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
-import { assessmentQuestions } from "../data/assessmentContent";
 import { useAssessments } from "../hooks/useAssessments";
 import { useAssessmentAttemptStore } from "../store/assessmentAttemptStore";
 
@@ -39,10 +38,10 @@ export function AssessmentQuizPage() {
   const { assessmentId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { assessments } = useAssessments();
+  const courseId = searchParams.get("courseId");
+  const { assessments } = useAssessments(courseId ?? undefined);
   const attempts = useAssessmentAttemptStore((state) => state.attempts);
   const saveAttempt = useAssessmentAttemptStore((state) => state.saveAttempt);
-  const courseId = searchParams.get("courseId");
   const view = searchParams.get("view");
   const existingAttempt = assessmentId ? attempts[assessmentId] : undefined;
 
@@ -52,8 +51,14 @@ export function AssessmentQuizPage() {
   );
 
   const questions = useMemo(
-    () => (assessmentId ? (assessmentQuestions[assessmentId] ?? []) : []),
-    [assessmentId],
+    () =>
+      (assessment?.questions ?? []).map((question) => ({
+        id: String(question.id),
+        prompt: question.question,
+        options: question.options,
+        correctAnswer: question.options[question.correctIndex] ?? "",
+      })),
+    [assessment],
   );
 
   const initialDuration = questions.length * 60 + 120;
@@ -64,9 +69,10 @@ export function AssessmentQuizPage() {
   const [isSubmitted, setIsSubmitted] = useState(() =>
     Boolean(existingAttempt && (view === "result" || view === null)),
   );
-  const [timeRemaining, setTimeRemaining] = useState(() =>
-    existingAttempt ? 0 : initialDuration,
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(() =>
+    existingAttempt ? 0 : null,
   );
+  const visibleTimeRemaining = timeRemaining ?? initialDuration;
 
   const currentQuestion = questions[currentQuestionIndex];
   const progressWidth =
@@ -91,7 +97,9 @@ export function AssessmentQuizPage() {
 
     const timer = window.setInterval(() => {
       setTimeRemaining((current) => {
-        if (current <= 1) {
+        const currentTime = current ?? initialDuration;
+
+        if (currentTime <= 1) {
           window.clearInterval(timer);
           if (assessmentId) {
             const nextScore = questions.reduce((total, question) => {
@@ -114,12 +122,19 @@ export function AssessmentQuizPage() {
           return 0;
         }
 
-        return current - 1;
+        return currentTime - 1;
       });
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [assessmentId, isSubmitted, questions, saveAttempt, selectedAnswers]);
+  }, [
+    assessmentId,
+    initialDuration,
+    isSubmitted,
+    questions,
+    saveAttempt,
+    selectedAnswers,
+  ]);
 
   const handleSubmit = () => {
     if (!assessmentId) {
@@ -217,7 +232,7 @@ export function AssessmentQuizPage() {
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[12px] font-medium text-ink-700 shadow-[0_6px_14px_rgba(15,23,42,0.05)]">
                 <Clock3 size={14} />
-                {formatTime(timeRemaining)}
+                {formatTime(visibleTimeRemaining)}
               </span>
             </div>
             <div className="h-2 rounded-full bg-line-100">
