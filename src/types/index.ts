@@ -98,6 +98,32 @@ export interface Assessment {
   questions?: Question[];
 }
 
+export interface AssessmentQuestionResult {
+  _id?: string;
+  question: string;
+  isCorrect: boolean;
+  userAnswer: string;
+  correctAnswer: string;
+  explanation?: string;
+}
+
+export interface AssessmentResult {
+  _id?: string;
+  assessmentId: string;
+  userId: string;
+  score: number;
+  totalPoints: number;
+  correctCount: number;
+  incorrectCount: number;
+  percentage: number;
+  passed: boolean;
+  status: "PASS" | "FAIL" | string;
+  totalQuestions: number;
+  questionResults: AssessmentQuestionResult[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Question {
   id: number;
   question: string;

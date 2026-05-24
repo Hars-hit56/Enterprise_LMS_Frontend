@@ -1,7 +1,7 @@
 import type { AxiosError } from "axios";
 import { apiClient } from "../../../services/apiClient";
 import { API_ENDPOINT_ASSESSMENT } from "../../../services/apiTypes";
-import type { Assessment, Question } from "../../../types";
+import type { Assessment, AssessmentResult, Question } from "../../../types";
 
 export interface AssessmentFormData {
   title: string;
@@ -51,6 +51,15 @@ interface CreateAssessmentResponse {
   success: boolean;
   message: string;
   assessment: ApiAssessment;
+}
+
+interface SubmitAssessmentPayload {
+  answers: number[];
+}
+
+interface AssessmentResultResponse {
+  success: boolean;
+  result: AssessmentResult;
 }
 
 type AssessmentsApiResponse =
@@ -169,6 +178,35 @@ export const assessmentService = {
     } catch (error) {
       throw new Error(
         extractErrorMessage(error, "Failed to create assessment."),
+      );
+    }
+  },
+
+  async submitAssessment(assessmentId: string, answers: number[]) {
+    try {
+      const response = await apiClient.post<AssessmentResultResponse>(
+        `${API_ENDPOINT_ASSESSMENT}/${assessmentId}/submit`,
+        { answers } satisfies SubmitAssessmentPayload,
+      );
+
+      return response.data.result;
+    } catch (error) {
+      throw new Error(
+        extractErrorMessage(error, "Failed to submit assessment."),
+      );
+    }
+  },
+
+  async getAssessmentResult(assessmentId: string) {
+    try {
+      const response = await apiClient.get<AssessmentResultResponse>(
+        `${API_ENDPOINT_ASSESSMENT}/${assessmentId}/result`,
+      );
+
+      return response.data.result;
+    } catch (error) {
+      throw new Error(
+        extractErrorMessage(error, "Failed to load assessment result."),
       );
     }
   },

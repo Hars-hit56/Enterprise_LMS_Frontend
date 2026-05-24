@@ -10,17 +10,21 @@ import {
   Star,
   Users,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { EmptyState } from "../../../components/common/EmptyState";
 import { CourseDetailSkeleton } from "../../../components/skeletons/CourseDetailSkeleton";
 import { Badge } from "../../../components/ui/Badge";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
-import type { Course, Lesson } from "../../../types";
+import { Toast } from "../../../components/ui/Toast";
+import type { AppDispatch, RootState } from "../../../store/store";
+import type { Assessment, Course, Lesson } from "../../../types";
 import { useAssessments } from "../../assessments/hooks/useAssessments";
-import { useAssessmentAttemptStore } from "../../assessments/store/assessmentAttemptStore";
+import { assessmentService } from "../../assessments/services/assessmentService";
 import { useCourseDetail } from "../hooks/useCourseDetail";
+import { clearPurchaseError, purchaseCourse } from "../store/courseStore";
 
 type CourseDetailSource =
   | "catalog"
@@ -108,17 +112,99 @@ function isImageUrl(value: string | undefined) {
   return Boolean(value && /^https?:\/\//i.test(value));
 }
 
+function AssessmentListItem({
+  assessment,
+  onOpen,
+}: {
+  assessment: Assessment;
+  onOpen: (assessmentId: string, hasResult: boolean) => void;
+}) {
+  const [hasResult, setHasResult] = useState(false);
+  const questionCount = assessment.questions?.length ?? 0;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadResultStatus() {
+      try {
+        await assessmentService.getAssessmentResult(assessment.id);
+
+        if (isMounted) {
+          setHasResult(true);
+        }
+      } catch {
+        if (isMounted) {
+          setHasResult(false);
+        }
+      }
+    }
+
+    void loadResultStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [assessment.id]);
+
+  return (
+    <div className="rounded-[22px] border border-line-100 bg-white p-3">
+      <div className="space-y-4">
+        <div className="flex items-start gap-2">
+          <div className="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-600">
+            <FileText size={14} />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-[12px] font-semibold text-ink-950">
+              {assessment.title}
+            </h3>
+            <div className="mt-1 flex flex-wrap items-center gap-4 text-[10px] text-ink-500">
+              <span className="inline-flex items-center gap-1.5">
+                <ClipboardCheck size={12} />
+                {questionCount} Questions
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Clock3 size={12} />
+                {assessment.timeLimit ?? "15 min"}
+              </span>
+            </div>
+          </div>
+          <Badge tone={hasResult ? "success" : "neutral"} className="!text-[8px]">
+            {hasResult ? "Completed" : "Not Started"}
+          </Badge>
+        </div>
+
+        <Button
+          type="button"
+          fullWidth
+          variant={hasResult ? "secondary" : "primary"}
+          className="!gap-2 !py-2 !text-[12px]"
+          onClick={() => onOpen(assessment.id, hasResult)}
+        >
+          {hasResult ? <Eye size={14} /> : <Play size={14} />}
+          {hasResult ? "View Result" : "Start Test"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function CourseDetailPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const [searchParams] = useSearchParams();
   const { course, isLoading, error } = useCourseDetail(courseId);
+  const { isPurchasing, purchaseError } = useSelector(
+    (state: RootState) => state.courses,
+  );
   const { assessments } = useAssessments(courseId);
-  const attempts = useAssessmentAttemptStore((state) => state.attempts);
   const source = getSource(searchParams, course ?? undefined);
-  const showAssessmentListCard = source === "my-courses";
-  const isPurchaseView = source === "catalog" || source === "recommended";
-  const canOpenLessons = source === "my-courses";
+  const effectiveSource = course?.isEnrolled ? "my-courses" : source;
+  const showAssessmentListCard = effectiveSource === "my-courses";
+  const isPurchaseView =
+    !course?.isEnrolled && (source === "catalog" || source === "recommended");
+  const canOpenLessons = Boolean(course?.isEnrolled);
+  const [purchaseMessage, setPurchaseMessage] = useState<string | null>(null);
 
   const modules = useMemo(() => (course ? buildModules(course) : []), [course]);
   const allLessons = useMemo(
@@ -157,6 +243,31 @@ export function CourseDetailPage() {
     );
   }, [assessments, course]);
 
+  async function handlePurchaseCourse() {
+    if (!course?.id) {
+      return;
+    }
+
+    setPurchaseMessage(null);
+    dispatch(clearPurchaseError());
+
+    try {
+      const result = await dispatch(purchaseCourse(course.id)).unwrap();
+      setPurchaseMessage(result.message);
+      navigate(`/student/courses/${course.id}?source=my-courses`, {
+        replace: true,
+      });
+    } catch {
+      setPurchaseMessage(null);
+    }
+  }
+
+  function openAssessment(assessmentId: string, hasResult: boolean) {
+    navigate(
+      `/student/assessments/${assessmentId}?courseId=${course?.id ?? ""}${hasResult ? "&view=result" : ""}`,
+    );
+  }
+
   if (isLoading) {
     return <CourseDetailSkeleton />;
   }
@@ -178,6 +289,21 @@ export function CourseDetailPage() {
 
   return (
     <section className="space-y-5">
+      {purchaseError ? (
+        <Toast
+          message={purchaseError}
+          type="error"
+          onClose={() => dispatch(clearPurchaseError())}
+        />
+      ) : null}
+      {purchaseMessage ? (
+        <Toast
+          message={purchaseMessage}
+          type="success"
+          onClose={() => setPurchaseMessage(null)}
+        />
+      ) : null}
+
       <Card className="overflow-hidden rounded-[28px] border-none bg-[linear-gradient(135deg,#2564f0_0%,#4c63e6_100%)] p-0 text-white shadow-[0_22px_45px_rgba(37,100,240,0.24)]">
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -320,7 +446,7 @@ export function CourseDetailPage() {
                                   }
 
                                   navigate(
-                                    `/student/courses/${course.id}/learn?lessonId=${lesson.id}&source=${source}`,
+                                    `/student/courses/${course.id}/learn?lessonId=${lesson.id}&source=${effectiveSource}`,
                                   );
                                 }}
                               >
@@ -376,8 +502,14 @@ export function CourseDetailPage() {
                   and future lesson updates.
                 </p>
               </div>
-              <Button fullWidth className="py-3 text-[13px]">
-                Subscribe
+              <Button
+                type="button"
+                fullWidth
+                className="py-3 text-[13px]"
+                disabled={isPurchasing}
+                onClick={handlePurchaseCourse}
+              >
+                {isPurchasing ? "Processing..." : "Subscribe"}
               </Button>
             </Card>
           ) : showAssessmentListCard ? (
@@ -398,61 +530,13 @@ export function CourseDetailPage() {
 
               <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                 {courseAssessments.length > 0 ? (
-                  courseAssessments.map((assessment) => {
-                    const attempt = attempts[assessment.id];
-                    const questionCount = assessment.questions?.length ?? 0;
-
-                    return (
-                      <div
-                        key={assessment.id}
-                        className="rounded-[22px] border border-line-100 bg-white p-3"
-                      >
-                        <div className="space-y-4">
-                          <div className="flex items-start gap-2">
-                            <div className="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-600">
-                              <FileText size={14} />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="text-[12px] font-semibold text-ink-950">
-                                {assessment.title}
-                              </h3>
-                              <div className="mt-1 flex flex-wrap items-center gap-4 text-[10px] text-ink-500">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <ClipboardCheck size={12} />
-                                  {questionCount} Questions
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <Clock3 size={12} />
-                                  {assessment.timeLimit ?? "15 min"}
-                                </span>
-                              </div>
-                            </div>
-                            <Badge
-                              tone={attempt ? "success" : "neutral"}
-                              className="!text-[8px]"
-                            >
-                              {attempt ? "Completed" : "Not Started"}
-                            </Badge>
-                          </div>
-
-                          <Button
-                            type="button"
-                            fullWidth
-                            variant={attempt ? "secondary" : "primary"}
-                            className="!gap-2 !py-2 !text-[12px]"
-                            onClick={() =>
-                              navigate(
-                                `/student/assessments/${assessment.id}?courseId=${course.id}${attempt ? "&view=result" : ""}`,
-                              )
-                            }
-                          >
-                            {attempt ? <Eye size={14} /> : <Play size={14} />}
-                            {attempt ? "View Result" : "Start Test"}
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })
+                  courseAssessments.map((assessment) => (
+                    <AssessmentListItem
+                      key={assessment.id}
+                      assessment={assessment}
+                      onOpen={openAssessment}
+                    />
+                  ))
                 ) : (
                   <div className="rounded-2xl border border-dashed border-line-200 px-4 py-5 text-[12px] text-ink-500">
                     No assessments have been added for this course yet.
@@ -489,7 +573,7 @@ export function CourseDetailPage() {
                 disabled={!activeLesson}
                 onClick={() =>
                   navigate(
-                    `/student/courses/${course.id}/learn?lessonId=${activeLesson?.id ?? ""}&source=${source}`,
+                    `/student/courses/${course.id}/learn?lessonId=${activeLesson?.id ?? ""}&source=${effectiveSource}`,
                   )
                 }
               >

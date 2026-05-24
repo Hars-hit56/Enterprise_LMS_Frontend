@@ -5,7 +5,6 @@ import {
   NotebookTabs,
   PlusCircle,
   ShieldCheck,
-  UserRound,
   Users,
 } from "lucide-react";
 import type { MenuSection, UserRole } from "../types";

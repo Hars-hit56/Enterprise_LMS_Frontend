@@ -13,6 +13,7 @@ export const API_ENDPOINT_COURSE_GET_BY_ID = "/api/course/getcourse";
 export const API_ENDPOINT_COURSE_EDIT = "/api/course/editcourse";
 export const API_ENDPOINT_COURSE_REMOVE = "/api/course/remove";
 
+export const API_ENDPOINT_ENROLLMENT = "/api/enrollment";
 export const API_ENDPOINT_ENROLLMENT_MY = "/api/enrollment/my";
 
 export const API_ENDPOINT_ASSESSMENT = "/api/assessment";

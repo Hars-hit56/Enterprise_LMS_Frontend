@@ -10,11 +10,13 @@ export interface CourseState {
   isCreating: boolean;
   isUpdating: boolean;
   isDeleting: boolean;
+  isPurchasing: boolean;
   error: string | null;
   detailError: string | null;
   createError: string | null;
   updateError: string | null;
   deleteError: string | null;
+  purchaseError: string | null;
   loadedRole: UserRole | null;
 }
 
@@ -26,11 +28,13 @@ const initialState: CourseState = {
   isCreating: false,
   isUpdating: false,
   isDeleting: false,
+  isPurchasing: false,
   error: null,
   detailError: null,
   createError: null,
   updateError: null,
   deleteError: null,
+  purchaseError: null,
   loadedRole: null,
 };
 
@@ -91,6 +95,18 @@ export const deleteCourse = createAsyncThunk<
   async (courseId) => courseService.deleteCourse(courseId),
 );
 
+export const purchaseCourse = createAsyncThunk<
+  {
+    courseId: string;
+    enrollmentId?: string;
+    progress: number;
+    message: string;
+  },
+  string
+>("courses/purchaseCourse", async (courseId) =>
+  courseService.purchaseCourse(courseId),
+);
+
 const courseSlice = createSlice({
   name: "courses",
   initialState,
@@ -103,6 +119,9 @@ const courseSlice = createSlice({
     },
     clearDeleteError: (state) => {
       state.deleteError = null;
+    },
+    clearPurchaseError: (state) => {
+      state.purchaseError = null;
     },
   },
   extraReducers: (builder) => {
@@ -215,10 +234,52 @@ const courseSlice = createSlice({
       .addCase(deleteCourse.rejected, (state, action) => {
         state.isDeleting = false;
         state.deleteError = action.error.message ?? "Failed to delete course.";
+      })
+      .addCase(purchaseCourse.pending, (state) => {
+        state.isPurchasing = true;
+        state.purchaseError = null;
+      })
+      .addCase(purchaseCourse.fulfilled, (state, action) => {
+        const { courseId, enrollmentId, progress } = action.payload;
+
+        state.courses = state.courses.map((course) =>
+          (course._id ?? course.id) === courseId
+            ? {
+                ...course,
+                enrollmentId,
+                progress,
+                isEnrolled: true,
+              }
+            : course,
+        );
+
+        const selectedCourse = state.selectedCourse;
+        if (
+          selectedCourse &&
+          (selectedCourse._id ?? selectedCourse.id) === courseId
+        ) {
+          state.selectedCourse = {
+            ...selectedCourse,
+            enrollmentId,
+            progress,
+            isEnrolled: true,
+          };
+        }
+
+        state.isPurchasing = false;
+      })
+      .addCase(purchaseCourse.rejected, (state, action) => {
+        state.isPurchasing = false;
+        state.purchaseError =
+          action.error.message ?? "Failed to purchase course.";
       });
   },
 });
 
-export const { clearCreateError, clearDeleteError, clearUpdateError } =
-  courseSlice.actions;
+export const {
+  clearCreateError,
+  clearDeleteError,
+  clearPurchaseError,
+  clearUpdateError,
+} = courseSlice.actions;
 export const courseReducer = courseSlice.reducer;

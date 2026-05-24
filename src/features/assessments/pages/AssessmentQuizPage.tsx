@@ -6,7 +6,7 @@ import {
   Target,
   XCircle,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Link,
   useNavigate,
@@ -17,8 +17,9 @@ import { EmptyState } from "../../../components/common/EmptyState";
 import { Badge } from "../../../components/ui/Badge";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
+import type { AssessmentResult } from "../../../types";
 import { useAssessments } from "../hooks/useAssessments";
-import { useAssessmentAttemptStore } from "../store/assessmentAttemptStore";
+import { assessmentService } from "../services/assessmentService";
 
 function getBackLink(courseId: string | null) {
   return courseId
@@ -40,10 +41,7 @@ export function AssessmentQuizPage() {
   const [searchParams] = useSearchParams();
   const courseId = searchParams.get("courseId");
   const { assessments } = useAssessments(courseId ?? undefined);
-  const attempts = useAssessmentAttemptStore((state) => state.attempts);
-  const saveAttempt = useAssessmentAttemptStore((state) => state.saveAttempt);
   const view = searchParams.get("view");
-  const existingAttempt = assessmentId ? attempts[assessmentId] : undefined;
 
   const assessment = useMemo(
     () => assessments.find((item) => item.id === assessmentId),
@@ -65,13 +63,13 @@ export function AssessmentQuizPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<string, string>
-  >(() => existingAttempt?.selectedAnswers ?? {});
-  const [isSubmitted, setIsSubmitted] = useState(() =>
-    Boolean(existingAttempt && (view === "result" || view === null)),
-  );
-  const [timeRemaining, setTimeRemaining] = useState<number | null>(() =>
-    existingAttempt ? 0 : null,
-  );
+  >({});
+  const [result, setResult] = useState<AssessmentResult | null>(null);
+  const [resultError, setResultError] = useState<string | null>(null);
+  const [isResultLoading, setIsResultLoading] = useState(view === "result");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const isSubmitted = view === "result" || Boolean(result);
   const visibleTimeRemaining = timeRemaining ?? initialDuration;
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -80,15 +78,103 @@ export function AssessmentQuizPage() {
       ? ((currentQuestionIndex + 1) / questions.length) * 100
       : 0;
   const answeredCount = Object.keys(selectedAnswers).length;
-  const score = questions.reduce((total, question) => {
-    return selectedAnswers[question.id] === question.correctAnswer
-      ? total + 1
-      : total;
-  }, 0);
-  const percentage =
-    questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
-  const incorrectCount = Math.max(questions.length - score, 0);
-  const hasPassed = percentage >= 70;
+  const score = result?.score ?? 0;
+  const totalPoints = result?.totalPoints ?? 0;
+  const correctCount = result?.correctCount ?? 0;
+  const percentage = result?.percentage ?? 0;
+  const incorrectCount = result?.incorrectCount ?? 0;
+  const hasPassed = Boolean(result?.passed);
+
+  useEffect(() => {
+    if (view !== "result" || !assessmentId) {
+      setResult(null);
+      setResultError(null);
+      setIsResultLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadResult() {
+      setIsResultLoading(true);
+      setResultError(null);
+
+      try {
+        const assessmentResult =
+          await assessmentService.getAssessmentResult(assessmentId);
+
+        if (isMounted) {
+          setResult(assessmentResult);
+          setTimeRemaining(0);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setResultError(
+            error instanceof Error
+              ? error.message
+              : "Failed to load assessment result.",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsResultLoading(false);
+        }
+      }
+    }
+
+    void loadResult();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [assessmentId, view]);
+
+  const submitAssessmentAnswers = useCallback(async () => {
+    if (!assessmentId || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setResultError(null);
+
+    try {
+      const answers = questions.map((question) => {
+        const selectedAnswer = selectedAnswers[question.id];
+        return Math.max(question.options.indexOf(selectedAnswer ?? ""), -1);
+      });
+      const assessmentResult = await assessmentService.submitAssessment(
+        assessmentId,
+        answers,
+      );
+
+      setResult(assessmentResult);
+      setTimeRemaining(0);
+
+      const nextSearchParams = new URLSearchParams();
+      if (courseId) {
+        nextSearchParams.set("courseId", courseId);
+      }
+      nextSearchParams.set("view", "result");
+
+      navigate(
+        `/student/assessments/${assessmentId}?${nextSearchParams.toString()}`,
+        { replace: true },
+      );
+    } catch (error) {
+      setResultError(
+        error instanceof Error ? error.message : "Failed to submit assessment.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    assessmentId,
+    courseId,
+    isSubmitting,
+    navigate,
+    questions,
+    selectedAnswers,
+  ]);
 
   useEffect(() => {
     if (isSubmitted || questions.length === 0) {
@@ -101,24 +187,8 @@ export function AssessmentQuizPage() {
 
         if (currentTime <= 1) {
           window.clearInterval(timer);
-          if (assessmentId) {
-            const nextScore = questions.reduce((total, question) => {
-              return selectedAnswers[question.id] === question.correctAnswer
-                ? total + 1
-                : total;
-            }, 0);
-
-            saveAttempt({
-              assessmentId,
-              score: nextScore,
-              totalQuestions: questions.length,
-              selectedAnswers,
-              submittedAt: new Date().toISOString(),
-            });
-          }
-
-          setIsSubmitted(true);
           setTimeRemaining(0);
+          void submitAssessmentAnswers();
           return 0;
         }
 
@@ -128,40 +198,15 @@ export function AssessmentQuizPage() {
 
     return () => window.clearInterval(timer);
   }, [
-    assessmentId,
     initialDuration,
     isSubmitted,
     questions,
-    saveAttempt,
     selectedAnswers,
+    submitAssessmentAnswers,
   ]);
 
   const handleSubmit = () => {
-    if (!assessmentId) {
-      return;
-    }
-
-    saveAttempt({
-      assessmentId,
-      score,
-      totalQuestions: questions.length,
-      selectedAnswers,
-      submittedAt: new Date().toISOString(),
-    });
-
-    setIsSubmitted(true);
-    setTimeRemaining(0);
-
-    const nextSearchParams = new URLSearchParams();
-    if (courseId) {
-      nextSearchParams.set("courseId", courseId);
-    }
-    nextSearchParams.set("view", "result");
-
-    navigate(
-      `/student/assessments/${assessmentId}?${nextSearchParams.toString()}`,
-      { replace: true },
-    );
+    void submitAssessmentAnswers();
   };
 
   if (!assessment) {
@@ -322,9 +367,9 @@ export function AssessmentQuizPage() {
                 <Button
                   className="gap-2 px-4 py-2.5 text-[12px]"
                   onClick={handleSubmit}
-                  disabled={answeredCount !== questions.length}
+                  disabled={answeredCount !== questions.length || isSubmitting}
                 >
-                  Submit
+                  {isSubmitting ? "Submitting..." : "Submit"}
                   <CheckCircle2 size={14} />
                 </Button>
               )}
@@ -333,7 +378,44 @@ export function AssessmentQuizPage() {
         </Card>
       ) : (
         <Card className="mx-auto w-full max-w-3xl !rounded-[24px] !px-3 !py-3 !sm:px-6 !sm:py-6 !sm:rounded-[24px]">
-          <div className="space-y-5 sm:space-y-6">
+          {isResultLoading ? (
+            <div className="space-y-4 p-4">
+              <div className="mx-auto h-14 w-14 animate-pulse rounded-full bg-line-100" />
+              <div className="mx-auto h-5 w-40 animate-pulse rounded bg-line-100" />
+              <div className="h-28 animate-pulse rounded-[22px] bg-line-100" />
+            </div>
+          ) : resultError ? (
+            <div className="space-y-4 p-4 text-center">
+              <p className="text-sm font-medium text-danger-700">
+                {resultError}
+              </p>
+              <Link to={getBackLink(courseId)}>
+                <Button
+                  variant="secondary"
+                  className="gap-2 px-4 py-2.5 text-[12px]"
+                >
+                  <ArrowLeft size={16} />
+                  Back to Assignment List
+                </Button>
+              </Link>
+            </div>
+          ) : !result ? (
+            <div className="space-y-4 p-4 text-center">
+              <p className="text-sm font-medium text-ink-500">
+                No assessment result was found.
+              </p>
+              <Link to={getBackLink(courseId)}>
+                <Button
+                  variant="secondary"
+                  className="gap-2 px-4 py-2.5 text-[12px]"
+                >
+                  <ArrowLeft size={16} />
+                  Back to Assignment List
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-5 sm:space-y-6">
             <div className="overflow-hidden rounded-[24px] border border-line-100 bg-[linear-gradient(180deg,#fff3f1_0%,#fff9f8_100%)]">
               <div className="space-y-4 px-4 py-6 text-center sm:space-y-5 sm:px-6 sm:py-7">
                 <div
@@ -380,7 +462,7 @@ export function AssessmentQuizPage() {
                     {score}
                     <span className="text-[10px] text-ink-500 sm:text-[20px]">
                       {" "}
-                      / {questions.length}
+                      / {totalPoints}
                     </span>
                   </p>
                   <p
@@ -396,7 +478,7 @@ export function AssessmentQuizPage() {
                   <div className="rounded-[18px] border border-line-100 bg-soft/60 p-3.5 text-center sm:p-4">
                     <Target className="mx-auto text-ink-500" size={18} />
                     <p className="mt-1 text-[16px] font-semibold text-ink-950 sm:mt-2 sm:text-[24px]">
-                      {questions.length}
+                      {result.totalQuestions}
                     </p>
                     <p className="text-[10px] text-ink-500">Total</p>
                   </div>
@@ -406,7 +488,7 @@ export function AssessmentQuizPage() {
                       size={18}
                     />
                     <p className="mt-1 text-[16px] font-semibold text-success-700 sm:mt-2 sm:text-[24px]">
-                      {score}
+                      {correctCount}
                     </p>
                     <p className="text-[10px] text-ink-500">Correct</p>
                   </div>
@@ -422,31 +504,33 @@ export function AssessmentQuizPage() {
             </div>
 
             <div className="space-y-3">
-              {questions.map((question, index) => {
-                const selectedAnswer = selectedAnswers[question.id];
-                const isCorrect = selectedAnswer === question.correctAnswer;
-
+              {result.questionResults.map((question, index) => {
                 return (
                   <div
-                    key={question.id}
+                    key={question._id ?? `${question.question}-${index}`}
                     className="rounded-[18px] border border-line-100 bg-soft/60 p-3.5 sm:p-4"
                   >
                     <p className="text-[12px] font-medium text-ink-950 sm:text-[13px]">
-                      {index + 1}. {question.prompt}
+                      {index + 1}. {question.question}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2 text-[12px]">
-                      <Badge tone={isCorrect ? "success" : "warning"}>
-                        {isCorrect ? "Correct" : "Incorrect"}
+                      <Badge tone={question.isCorrect ? "success" : "warning"}>
+                        {question.isCorrect ? "Correct" : "Incorrect"}
                       </Badge>
                       <Badge tone="neutral">
-                        Your answer: {selectedAnswer ?? "Not answered"}
+                        Your answer: {question.userAnswer || "Not answered"}
                       </Badge>
-                      {!isCorrect ? (
+                      {!question.isCorrect ? (
                         <Badge tone="brand">
                           Correct answer: {question.correctAnswer}
                         </Badge>
                       ) : null}
                     </div>
+                    {question.explanation ? (
+                      <p className="mt-3 text-[12px] leading-5 text-ink-500">
+                        {question.explanation}
+                      </p>
+                    ) : null}
                   </div>
                 );
               })}
@@ -463,7 +547,8 @@ export function AssessmentQuizPage() {
                 </Button>
               </Link>
             </div>
-          </div>
+            </div>
+          )}
         </Card>
       )}
     </section>

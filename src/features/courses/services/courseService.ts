@@ -7,6 +7,7 @@ import {
   API_ENDPOINT_COURSE_GET_CREATOR,
   API_ENDPOINT_COURSE_GET_PUBLISHED,
   API_ENDPOINT_COURSE_REMOVE,
+  API_ENDPOINT_ENROLLMENT,
   API_ENDPOINT_ENROLLMENT_MY,
 } from "../../../services/apiTypes";
 import type { AxiosError } from "axios";
@@ -15,6 +16,17 @@ type CreatorCoursesApiResponse =
   | Course
   | Course[]
   | { data: Course | Course[] };
+
+type CourseDetailApiResponse =
+  | Course
+  | {
+      course: Course;
+      isEnrolled?: boolean;
+    }
+  | {
+      data: Course;
+      isEnrolled?: boolean;
+    };
 
 type DeleteCourseApiResponse = {
   message?: string;
@@ -40,6 +52,11 @@ type EnrollmentsApiResponse =
       data?: Enrollment[];
     };
 
+type PurchaseCourseApiResponse = {
+  message?: string;
+  enrollment?: Enrollment;
+};
+
 type FormDataValue = Blob | boolean | number | string | null | undefined;
 type FormDataFields = Record<string, FormDataValue>;
 
@@ -57,6 +74,24 @@ function normalizeEnrollments(response: EnrollmentsApiResponse): Enrollment[] {
   }
 
   return response.data ?? [];
+}
+
+function normalizeCourseDetail(response: CourseDetailApiResponse): Course {
+  if ("course" in response) {
+    return {
+      ...response.course,
+      isEnrolled: response.isEnrolled ?? response.course.isEnrolled,
+    };
+  }
+
+  if ("data" in response) {
+    return {
+      ...response.data,
+      isEnrolled: response.isEnrolled ?? response.data.isEnrolled,
+    };
+  }
+
+  return response;
 }
 
 function getCourseLessonCount(course: Course) {
@@ -236,13 +271,39 @@ export const courseService = {
   },
 
   async getCourseById(courseId: string) {
-    const response = await apiClient.get<Course | { data: Course }>(
+    const response = await apiClient.get<CourseDetailApiResponse>(
       `${API_ENDPOINT_COURSE_GET_BY_ID}/${courseId}`,
     );
 
-    const course = "data" in response.data ? response.data.data : response.data;
+    return mapApiCourse(normalizeCourseDetail(response.data));
+  },
 
-    return mapApiCourse(course);
+  async purchaseCourse(courseId: string) {
+    try {
+      const response = await apiClient.post<PurchaseCourseApiResponse>(
+        `${API_ENDPOINT_ENROLLMENT}/${courseId}`,
+      );
+      const enrollment = response.data.enrollment;
+
+      return {
+        courseId:
+          typeof enrollment?.courseId === "string"
+            ? enrollment.courseId
+            : courseId,
+        enrollmentId: enrollment?._id ?? enrollment?.id,
+        progress: enrollment?.progress ?? 0,
+        message: response.data.message ?? "Course purchase successfully",
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<{
+        message?: string;
+        error?: string;
+      }>;
+      const message =
+        axiosError.response?.data?.message ?? axiosError.response?.data?.error;
+
+      throw new Error(message ?? "Failed to purchase course.");
+    }
   },
 
   async createCourse(course: CourseFormData) {
