@@ -14,6 +14,11 @@ export interface User {
   joined?: string;
 }
 
+export interface creator {
+  _id: string;
+  name: string;
+  photoUrl: string;
+}
 export interface Course {
   _id?: string;
   id?: string;
@@ -36,7 +41,7 @@ export interface Course {
   currency?: string;
   isFree?: boolean;
   enrolledStudents?: unknown[];
-  creator?: string;
+  creator?: creator;
   isPublished?: boolean;
   reviews?: unknown[];
   createdAt?: string;

@@ -12,6 +12,15 @@ export interface InstructorAnalyticsResponse {
   totalStudents: number;
   totalRevenue: number;
   totalLessons: number;
+  engagementData?: {
+    name: string;
+    enrollments: number;
+    submissions: number;
+  }[];
+  progressData?: {
+    name: string;
+    progress: number;
+  }[];
 }
 
 export interface AdminAnalyticsResponse {

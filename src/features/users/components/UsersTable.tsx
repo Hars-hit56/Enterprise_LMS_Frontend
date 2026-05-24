@@ -3,6 +3,28 @@ import { Badge } from "../../../components/ui/Badge";
 import { RowActions } from "../../../components/common/RowActions";
 import type { TableColumn, User, UserRole } from "../../../types";
 
+function formatJoinedDate(value?: string) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const day = date.getDate();
+  const month = date.toLocaleString("en-IN", { month: "short" });
+  const year = date.getFullYear();
+  const hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const hour12 = hours % 12 || 12;
+  const meridiem = hours >= 12 ? "PM" : "AM";
+
+  return `${day} ${month} ${year} ${hour12}:${minutes}${meridiem}`;
+}
+
 const columns: TableColumn<User>[] = [
   { key: "name", header: "Name" },
   { key: "email", header: "Email" },
@@ -28,7 +50,11 @@ const columns: TableColumn<User>[] = [
     header: "Status",
     render: (user) => <Badge tone="success">{user.status ?? "Active"}</Badge>,
   },
-  { key: "joined", header: "Joined" },
+  {
+    key: "joined",
+    header: "Joined",
+    render: (user) => formatJoinedDate(user.joined),
+  },
 ];
 
 interface UsersTableProps {

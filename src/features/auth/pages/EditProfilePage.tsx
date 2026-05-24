@@ -6,8 +6,8 @@ import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import { Input } from "../../../components/ui/Input";
 import { initials } from "../../../utils/format";
-import type { AuthUser } from "../services/authService";
 import { useAuth } from "../hooks/useAuth";
+import type { AuthUser } from "../services/authService";
 
 interface ProfileFormState {
   name: string;
@@ -37,7 +37,6 @@ function ProfileEditor({ user }: { user: AuthUser }) {
   });
   const [photoPreview, setPhotoPreview] = useState<string>(user.photoUrl ?? "");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -52,13 +51,15 @@ function ProfileEditor({ user }: { user: AuthUser }) {
     [user],
   );
 
-  function updateField(field: keyof ProfileFormState, value: string | File | null) {
+  function updateField(
+    field: keyof ProfileFormState,
+    value: string | File | null,
+  ) {
     setForm((current) => ({
       ...current,
       [field]: value,
     }));
     setError(null);
-    setSuccess(null);
   }
 
   function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
@@ -81,7 +82,6 @@ function ProfileEditor({ user }: { user: AuthUser }) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setSuccess(null);
 
     if (!form.name.trim() || !form.email.trim()) {
       setError("Name and email are required.");
@@ -95,7 +95,6 @@ function ProfileEditor({ user }: { user: AuthUser }) {
         description: form.description.trim(),
         photoUrl: form.photoUrl,
       });
-      setSuccess("Profile updated successfully.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -213,12 +212,6 @@ function ProfileEditor({ user }: { user: AuthUser }) {
           {error ? (
             <div className="rounded-xl border border-danger-100 bg-danger-50 px-4 py-3 text-[12px] font-medium text-danger-700">
               {error}
-            </div>
-          ) : null}
-
-          {success ? (
-            <div className="rounded-xl border border-success-100 bg-success-100 px-4 py-3 text-[12px] font-medium text-success-700">
-              {success}
             </div>
           ) : null}
 

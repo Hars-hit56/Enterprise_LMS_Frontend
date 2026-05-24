@@ -130,11 +130,12 @@ function mapApiCourse(course: Course): Course {
   const id = course._id ?? course.id ?? "";
   const lessons = course.lessons ?? getCourseLessonCount(course);
   const enrolledStudents = course.enrolledStudents ?? [];
+  const instructor = course?.creator?.name;
 
   return {
     ...course,
     id,
-    instructor: course.instructor ?? course.creator ?? "Instructor",
+    instructor: instructor,
     duration: `${lessons} lessons`,
     students: enrolledStudents.length,
     rating: getCourseRating(course),
@@ -172,6 +173,8 @@ function appendFormDataFields(formData: FormData, fields: FormDataFields) {
 export function buildCreateCourseFormData(course: CourseFormData) {
   const formData = new FormData();
   const modules = course.modules.map((module, moduleIndex) => ({
+    _id: module._id,
+    id: module.id,
     title: module.title ?? "",
     lessons: (module.lessons ?? []).map((lesson, lessonIndex) => {
       if (lesson.video) {
@@ -179,8 +182,11 @@ export function buildCreateCourseFormData(course: CourseFormData) {
       }
 
       return {
+        _id: lesson._id,
+        id: lesson.id,
         title: lesson.title ?? "",
         isFree: Boolean(lesson.isFree),
+        videoUrl: lesson.videoUrl ?? null,
       };
     }),
   }));
@@ -230,7 +236,8 @@ function buildCourseFormDataFromCourse(
 
           return {
             ...lesson,
-            id: lesson.id ?? lesson._id ?? `lesson-${moduleIndex}-${lessonIndex}`,
+            id:
+              lesson.id ?? lesson._id ?? `lesson-${moduleIndex}-${lessonIndex}`,
             title: lesson.title ?? lesson.lectureTitle ?? "",
             isFree: lesson.isFree ?? lesson.isPreviewFree ?? false,
           };
@@ -311,6 +318,11 @@ export const courseService = {
       const response = await apiClient.post<Course | { data: Course }>(
         API_ENDPOINT_COURSE_CREATE,
         buildCreateCourseFormData(course),
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
 
       return "data" in response.data ? response.data.data : response.data;
@@ -331,6 +343,11 @@ export const courseService = {
       const response = await apiClient.put<Course | { data: Course }>(
         `${API_ENDPOINT_COURSE_EDIT}/${courseId}`,
         buildCreateCourseFormData(course),
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
 
       return "data" in response.data ? response.data.data : response.data;
@@ -352,11 +369,23 @@ export const courseService = {
     course: Course,
   ) {
     try {
+      const fullCourse = await courseService.getCourseById(courseId);
       const response = await apiClient.put<UpdateCourseStatusApiResponse>(
         `${API_ENDPOINT_COURSE_EDIT}/${courseId}`,
         buildCreateCourseFormData(
-          buildCourseFormDataFromCourse(course, isPublished),
+          buildCourseFormDataFromCourse(
+            {
+              ...course,
+              ...fullCourse,
+            },
+            isPublished,
+          ),
         ),
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
       const responseBody = response.data;
       const updatedCourse =

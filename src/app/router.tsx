@@ -62,6 +62,10 @@ export function AppRouter() {
             <Route path="courses/create" element={<CreateCoursePage />} />
             <Route path="courses/edit/:id" element={<EditCoursePage />} />
             <Route
+              path="courses/:courseId/learn"
+              element={<CoursePlayerPage />}
+            />
+            <Route
               path="assessments/create"
               element={<CreateAssessmentPage />}
             />
@@ -83,6 +87,10 @@ export function AppRouter() {
             <Route path="courses" element={<CourseManagementPage />} />
             <Route path="courses/create" element={<CreateCoursePage />} />
             <Route path="courses/edit/:id" element={<EditCoursePage />} />
+            <Route
+              path="courses/:courseId/learn"
+              element={<CoursePlayerPage />}
+            />
             <Route
               path="assessments/create"
               element={<CreateAssessmentPage />}

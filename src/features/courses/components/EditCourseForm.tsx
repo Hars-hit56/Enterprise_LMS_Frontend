@@ -3,8 +3,10 @@ import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
-import { Info, Plus, Trash2, Upload } from "lucide-react";
+import { Info, PlayCircle, Plus, Trash2, Upload } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AssessmentList } from "../../assessments/components/AssessmentList";
+import { useAuth } from "../../auth/hooks/useAuth";
 import type {
   Course,
   Module,
@@ -68,6 +70,7 @@ function normalizeModules(modules: Module[] | undefined, useDefault: boolean) {
           id: lesson._id ?? lesson.id ?? `lesson-${moduleIndex}-${lessonIndex}`,
           title: lesson.lectureTitle ?? lesson.title ?? "",
           isFree: lesson.isFree ?? lesson.isPreviewFree ?? false,
+          videoUrl: lesson.videoUrl ?? null,
         };
       },
     ),
@@ -85,6 +88,10 @@ export function CourseForm({
   onCancel,
   isSaving = false,
 }: CourseFormProps) {
+  const { user } = useAuth();
+  const courseId = course?._id ?? course?.id;
+  const coursePlayerBasePath =
+    user && courseId ? `/${user.role}/courses/${courseId}/learn` : "";
   const [courseData, setCourseData] = useState<CourseFormData>({
     title: course?.title || "",
     description: course?.description || "",
@@ -529,11 +536,19 @@ export function CourseForm({
                   </button>
                 </div>
 
-                {lesson.video && (
+                {lesson.video ? (
                   <span className="truncate text-xs text-ink-500">
-                    {lesson.video.name}
+                    Selected video: {lesson.video.name}
                   </span>
-                )}
+                ) : lesson.videoUrl && coursePlayerBasePath ? (
+                  <Link
+                    to={`${coursePlayerBasePath}?lessonId=${lesson.id}&source=edit`}
+                    className="inline-flex max-w-full items-center gap-1.5 truncate text-xs font-medium text-brand-600 transition hover:text-brand-700"
+                  >
+                    <PlayCircle size={14} className="shrink-0" />
+                    <span className="truncate">Current video uploaded</span>
+                  </Link>
+                ) : null}
               </div>
             ))}
 

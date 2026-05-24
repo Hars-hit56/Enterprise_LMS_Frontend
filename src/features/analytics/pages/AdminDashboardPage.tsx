@@ -11,11 +11,13 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   Line,
   LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -113,14 +115,28 @@ export function AdminDashboardPage() {
                   tickLine={false}
                   tick={{ fontSize: 12, fill: "#64748b" }}
                 />
+                <Tooltip
+                  cursor={{ fill: "#f8fafc" }}
+                  contentStyle={{
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 8,
+                    boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
+                  }}
+                />
+                <Legend
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
+                />
                 <Bar
                   dataKey="total"
+                  name="Total Users"
                   fill="#2563eb"
                   radius={[4, 4, 0, 0]}
                   barSize={32}
                 />
                 <Bar
                   dataKey="active"
+                  name="Active Users"
                   fill="#22c55e"
                   radius={[4, 4, 0, 0]}
                   barSize={32}
@@ -153,10 +169,25 @@ export function AdminDashboardPage() {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fill: "#64748b" }}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <Tooltip
+                  cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}
+                  formatter={(value) => [`${value}%`, "Progress"]}
+                  contentStyle={{
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 8,
+                    boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
+                  }}
+                />
+                <Legend
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="value"
+                  name="Progress"
                   stroke="#2563eb"
                   strokeWidth={2}
                   dot={{ r: 4, fill: "#2563eb" }}
@@ -186,6 +217,18 @@ export function AdminDashboardPage() {
           <div className="h-[200px] flex items-center justify-center relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
+                <Tooltip
+                  formatter={(value) => [`${value}%`, "Share"]}
+                  contentStyle={{
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 8,
+                    boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
+                  }}
+                />
+                <Legend
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                />
                 <Pie
                   data={distributionData}
                   innerRadius={50}

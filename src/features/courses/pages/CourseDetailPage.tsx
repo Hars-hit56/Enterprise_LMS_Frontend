@@ -168,7 +168,10 @@ function AssessmentListItem({
               </span>
             </div>
           </div>
-          <Badge tone={hasResult ? "success" : "neutral"} className="!text-[8px]">
+          <Badge
+            tone={hasResult ? "success" : "neutral"}
+            className="!text-[8px]"
+          >
             {hasResult ? "Completed" : "Not Started"}
           </Badge>
         </div>
@@ -347,14 +350,14 @@ export function CourseDetailPage() {
           <Card className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">
               <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-brand-50 text-[24px]">
-                {isImageUrl(course.thumbnail) ? (
+                {isImageUrl(course?.creator?.photoUrl) ? (
                   <img
-                    src={course.thumbnail}
+                    src={course?.creator?.photoUrl}
                     alt={course.title}
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  course.thumbnail
+                  course?.creator?.photoUrl
                 )}
               </div>
               <div>

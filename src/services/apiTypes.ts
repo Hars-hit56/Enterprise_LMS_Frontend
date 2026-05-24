@@ -4,6 +4,7 @@ export const API_ENDPOINT_AUTH_LOGOUT = "/api/auth/logout";
 export const API_ENDPOINT_AUTH_SIGNUP = "/api/auth/signup";
 
 export const API_ENDPOINT_USER_UPDATE_PROFILE = "/api/user/updateprofile";
+export const API_ENDPOINT_ADMIN_USERS = "/api/user/admin/users";
 export const API_ENDPOINT_USERS = "/api/users";
 
 export const API_ENDPOINT_COURSE_CREATE = "/api/course/create";
@@ -19,5 +20,7 @@ export const API_ENDPOINT_ENROLLMENT_MY = "/api/enrollment/my";
 export const API_ENDPOINT_ASSESSMENT = "/api/assessment";
 
 export const API_ENDPOINT_ANALYTICS_INSTRUCTOR = "/api/analytics/instructor";
+export const API_ENDPOINT_ANALYTICS_INSTRUCTOR_STUDENTS =
+  "/api/analytics/instructor/students";
 export const API_ENDPOINT_ANALYTICS_ADMIN = "/api/analytics/admin";
 export const API_ENDPOINT_ANALYTICS_STUDENT = "/api/analytics/student";

@@ -3,9 +3,11 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -16,30 +18,11 @@ import { Card } from "../../../components/ui/Card";
 import { DashboardSection } from "../components/DashboardSection";
 import { useInstructorAnalytics } from "../hooks/useAnalytics";
 
-// --- Mock Data for Charts ---
-const engagementData = [
-  { day: "Mon", total: 420, active: 40 },
-  { day: "Tue", total: 380, active: 50 },
-  { day: "Wed", total: 510, active: 30 },
-  { day: "Thu", total: 470, active: 60 },
-  { day: "Fri", total: 390, active: 50 },
-  { day: "Sat", total: 250, active: 25 },
-  { day: "Sun", total: 180, active: 15 },
-];
-
-const progressData = [
-  { week: "Week 1", value: 25 },
-  { week: "Week 2", value: 38 },
-  { week: "Week 3", value: 52 },
-  { week: "Week 4", value: 61 },
-  { week: "Week 5", value: 69 },
-  { week: "Week 6", value: 74 },
-];
-
 const fallbackIcons = [Users, BookOpen, TrendingUp];
 
 export function InstructorDashboardPage() {
-  const { stats, isLoading, error } = useInstructorAnalytics();
+  const { stats, engagementData, progressData, isLoading, error } =
+    useInstructorAnalytics();
 
   return (
     <DashboardSection
@@ -82,7 +65,7 @@ export function InstructorDashboardPage() {
                     stroke="#f1f5f9"
                   />
                   <XAxis
-                    dataKey="day"
+                    dataKey="name"
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: "#64748b" }}
@@ -92,14 +75,28 @@ export function InstructorDashboardPage() {
                     tickLine={false}
                     tick={{ fontSize: 12, fill: "#64748b" }}
                   />
+                  <Tooltip
+                    cursor={{ fill: "#f8fafc" }}
+                    contentStyle={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 8,
+                      boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
+                    }}
+                  />
+                  <Legend
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
+                  />
                   <Bar
-                    dataKey="total"
+                    dataKey="enrollments"
+                    name="Enrollments"
                     fill="#2563eb"
                     radius={[4, 4, 0, 0]}
                     barSize={32}
                   />
                   <Bar
-                    dataKey="active"
+                    dataKey="submissions"
+                    name="Submissions"
                     fill="#22c55e"
                     radius={[4, 4, 0, 0]}
                     barSize={32}
@@ -123,7 +120,7 @@ export function InstructorDashboardPage() {
                     stroke="#f1f5f9"
                   />
                   <XAxis
-                    dataKey="week"
+                    dataKey="name"
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: "#64748b" }}
@@ -132,10 +129,25 @@ export function InstructorDashboardPage() {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: "#64748b" }}
+                    tickFormatter={(value) => `${value}%`}
+                  />
+                  <Tooltip
+                    cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}
+                    formatter={(value) => [`${value}%`, "Progress"]}
+                    contentStyle={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 8,
+                      boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
+                    }}
+                  />
+                  <Legend
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
                   />
                   <Line
                     type="monotone"
-                    dataKey="value"
+                    dataKey="progress"
+                    name="Progress"
                     stroke="#2563eb"
                     strokeWidth={2}
                     dot={{ r: 4, fill: "#2563eb" }}

@@ -228,6 +228,11 @@ export const authService = {
       const response = await apiClient.put<UpdateProfileResponse>(
         API_ENDPOINT_USER_UPDATE_PROFILE,
         buildProfileFormData(payload),
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
       const result = normalizeProfileResponse(response.data);
 

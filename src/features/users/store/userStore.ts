@@ -1,33 +1,84 @@
-import { create } from "zustand";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { User } from "../../../types";
 import { userService } from "../services/userService";
 
-interface UserState {
+export interface UserState {
   users: User[];
   isLoading: boolean;
-  fetchUsers: () => Promise<void>;
-  updateUser: (id: string, updates: Partial<User>) => Promise<void>;
-  deleteUser: (id: string) => Promise<void>;
+  error: string | null;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+const initialState: UserState = {
   users: [],
   isLoading: false,
-  fetchUsers: async () => {
-    set({ isLoading: true });
-    const users = await userService.getUsers();
-    set({ users, isLoading: false });
-  },
-  updateUser: async (id, updates) => {
-    const updatedUser = await userService.updateUser(id, updates);
-    set((state) => ({
-      users: state.users.map((user) =>
-        user.id === id ? { ...user, ...updatedUser } : user,
-      ),
-    }));
-  },
-  deleteUser: async (id) => {
+  error: null,
+};
+
+export const fetchUsers = createAsyncThunk<User[]>(
+  "users/fetchUsers",
+  async () => userService.getUsers(),
+);
+
+export const fetchInstructorStudents = createAsyncThunk<User[]>(
+  "users/fetchInstructorStudents",
+  async () => userService.getInstructorStudents(),
+);
+
+export const updateUser = createAsyncThunk<
+  User,
+  { id: string; updates: Partial<User> }
+>("users/updateUser", async ({ id, updates }) =>
+  userService.updateUser(id, updates),
+);
+
+export const deleteUser = createAsyncThunk<string, string>(
+  "users/deleteUser",
+  async (id) => {
     await userService.deleteUser(id);
-    set((state) => ({ users: state.users.filter((user) => user.id !== id) }));
+    return id;
   },
-}));
+);
+
+const userSlice = createSlice({
+  name: "users",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.users = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message ?? "Failed to load users.";
+      })
+      .addCase(fetchInstructorStudents.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchInstructorStudents.fulfilled, (state, action) => {
+        state.users = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(fetchInstructorStudents.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message ?? "Failed to load students.";
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        const updatedUser = action.payload;
+        state.users = state.users.map((user) =>
+          user.id === updatedUser.id ? { ...user, ...updatedUser } : user,
+        );
+      })
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        state.users = state.users.filter((user) => user.id !== action.payload);
+      });
+  },
+});
+
+export const userReducer = userSlice.reducer;

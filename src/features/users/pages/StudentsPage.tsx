@@ -2,23 +2,18 @@ import { useState } from "react";
 import { UsersTable } from "../components/UsersTable";
 import { EditUserModal } from "../components/EditUserModal";
 import { Toast } from "../../../components/ui/Toast";
-import { useUsers } from "../hooks/useUsers";
+import { DataTableSkeleton } from "../../../components/skeletons/DataTableSkeleton";
+import { useInstructorStudents } from "../hooks/useUsers";
 import { useAuth } from "../../auth/hooks/useAuth";
 import type { User } from "../../../types";
 
 export function StudentsPage() {
-  const { users, isLoading, updateUser, deleteUser } = useUsers();
+  const { users: students, isLoading, error, updateUser, deleteUser } =
+    useInstructorStudents();
   const { user: currentUser } = useAuth();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const students = users.filter((user) => user.role === "student");
-
-  if (isLoading) {
-    return (
-      <div className="p-6 text-sm text-slate-600">Loading students...</div>
-    );
-  }
 
   const handleEdit = (user: User) => {
     setSelectedUser(user);
@@ -35,7 +30,7 @@ export function StudentsPage() {
       await updateUser(selectedUser.id, data);
       setSuccessMessage("Student updated successfully.");
       setSelectedUser(null);
-    } catch (error) {
+    } catch {
       alert("Failed to update student.");
     } finally {
       setIsSaving(false);
@@ -46,7 +41,7 @@ export function StudentsPage() {
     if (window.confirm(`Are you sure you want to delete ${user.name}?`)) {
       try {
         await deleteUser(user.id);
-      } catch (error) {
+      } catch {
         alert("Failed to delete user");
       }
     }
@@ -63,13 +58,20 @@ export function StudentsPage() {
           programs.
         </p>
       </div>
-      <UsersTable
-        users={students}
-        title="Student roster"
-        currentUserRole={currentUser?.role}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {error ? (
+        <p className="text-sm font-medium text-danger-700">{error}</p>
+      ) : null}
+      {isLoading ? (
+        <DataTableSkeleton columns={6} />
+      ) : (
+        <UsersTable
+          users={students}
+          title="Student roster"
+          currentUserRole={currentUser?.role}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
       <EditUserModal
         open={Boolean(selectedUser)}
         user={selectedUser}

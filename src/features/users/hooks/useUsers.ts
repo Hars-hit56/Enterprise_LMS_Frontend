@@ -1,16 +1,46 @@
 import { useEffect } from "react";
-import { useUserStore } from "../store/userStore";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../../store/store";
+import {
+  deleteUser as deleteUserThunk,
+  fetchInstructorStudents,
+  fetchUsers,
+  updateUser as updateUserThunk,
+} from "../store/userStore";
+import type { User } from "../../../types";
 
 export function useUsers() {
-  const users = useUserStore((state) => state.users);
-  const isLoading = useUserStore((state) => state.isLoading);
-  const fetchUsers = useUserStore((state) => state.fetchUsers);
-  const updateUser = useUserStore((state) => state.updateUser);
-  const deleteUser = useUserStore((state) => state.deleteUser);
+  const dispatch = useDispatch<AppDispatch>();
+  const { users, isLoading, error } = useSelector(
+    (state: RootState) => state.users,
+  );
 
   useEffect(() => {
-    void fetchUsers();
-  }, [fetchUsers]);
+    void dispatch(fetchUsers());
+  }, [dispatch]);
 
-  return { users, isLoading, updateUser, deleteUser };
+  const updateUser = (id: string, updates: Partial<User>) =>
+    dispatch(updateUserThunk({ id, updates })).unwrap();
+
+  const deleteUser = (id: string) => dispatch(deleteUserThunk(id)).unwrap();
+
+  return { users, isLoading, error, updateUser, deleteUser };
+}
+
+export function useInstructorStudents() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { users, isLoading, error } = useSelector(
+    (state: RootState) => state.users,
+  );
+
+  useEffect(() => {
+    void dispatch(fetchInstructorStudents());
+  }, [dispatch]);
+
+  const updateUser = (id: string, updates: Partial<User>) =>
+    dispatch(updateUserThunk({ id, updates })).unwrap();
+
+  const deleteUser = (id: string) => dispatch(deleteUserThunk(id)).unwrap();
+
+  return { users, isLoading, error, updateUser, deleteUser };
 }

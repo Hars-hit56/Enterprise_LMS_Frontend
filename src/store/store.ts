@@ -4,12 +4,14 @@ import { assessmentReducer } from '../features/assessments/store/assessmentStore
 import { authReducer } from '../features/auth/store/authStore'
 import { logoutUser } from '../features/auth/store/authStore'
 import { courseReducer } from '../features/courses/store/courseStore'
+import { userReducer } from '../features/users/store/userStore'
 
 const appReducer = combineReducers({
   analytics: analyticsReducer,
   assessments: assessmentReducer,
   auth: authReducer,
   courses: courseReducer,
+  users: userReducer,
 })
 
 const rootReducer: typeof appReducer = (state, action) => {

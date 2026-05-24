@@ -99,7 +99,13 @@ export function useInstructorAnalytics() {
       ]
     : [];
 
-  return { stats, isLoading, error };
+  return {
+    stats,
+    engagementData: instructor?.engagementData ?? [],
+    progressData: instructor?.progressData ?? [],
+    isLoading,
+    error,
+  };
 }
 
 export function useInstructorContentAnalytics() {
