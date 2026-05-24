@@ -1,20 +1,12 @@
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CourseGridSkeleton } from "../../../components/skeletons/CourseGridSkeleton";
-import { Button } from "../../../components/ui/Button";
 import { Select } from "../../../components/ui/Select";
 import { CourseGrid } from "../components/CourseGrid";
 import { useCourses } from "../hooks/useCourses";
 
-const categories = [
-  "All Categories",
-  "Design",
-  "Development",
-  "Data Science",
-  "Cloud",
-  "Marketing",
-];
-const levels = ["All Levels", "Beginner", "Intermediate", "Advanced"];
+const categories = ["All Categories", "Mobile Development", "Web Development"];
+const levels = ["All Levels", "Beginner", "Intermediate"];
 
 export function CoursesPage() {
   const { courses, isLoading } = useCourses("student");
@@ -83,10 +75,6 @@ export function CoursesPage() {
                 </option>
               ))}
             </Select>
-            <Button variant="secondary" className="gap-2 px-3 py-2 text-[12px]">
-              <SlidersHorizontal size={14} />
-              Filters
-            </Button>
           </div>
         </div>
       </div>

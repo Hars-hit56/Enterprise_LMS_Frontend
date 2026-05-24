@@ -92,7 +92,8 @@ export function CourseForm({
     difficulty: course?.level || course?.difficulty || "",
     price: course?.price ? String(course.price) : "",
     currency: course?.currency || "INR",
-    isFree: course?.isFree || false,
+    isFree: course?.isFree ?? false,
+    isPublished: type === "edit" ? (course?.isPublished ?? false) : undefined,
     thumbnail: null,
     thumbnailPreview: course?.thumbnail || "",
     modules: normalizeModules(course?.modules, type === "create"),
@@ -136,7 +137,7 @@ export function CourseForm({
         ...prev.modules,
         {
           id: crypto.randomUUID(),
-          title: `Module ${prev.modules.length + 1}`,
+          title: `Module ${prev.modules.length + 1}:`,
           lessons: [],
         },
       ],

@@ -78,9 +78,9 @@ export const updateCoursePublishStatus = createAsyncThunk<
     isPublished: boolean;
     message: string;
   },
-  { courseId: string; isPublished: boolean }
->("courses/updateCoursePublishStatus", async ({ courseId, isPublished }) =>
-  courseService.updateCoursePublishStatus(courseId, isPublished),
+  { courseId: string; isPublished: boolean; course: Course }
+>("courses/updateCoursePublishStatus", async ({ courseId, isPublished, course }) =>
+  courseService.updateCoursePublishStatus(courseId, isPublished, course),
 );
 
 export const deleteCourse = createAsyncThunk<
@@ -169,7 +169,11 @@ const courseSlice = createSlice({
         state.updateError = null;
       })
       .addCase(updateCoursePublishStatus.fulfilled, (state, action) => {
-        const { course: updatedCourse, courseId, isPublished } = action.payload;
+        const {
+          course: updatedCourse,
+          courseId,
+          isPublished,
+        } = action.payload;
         state.courses = state.courses.map((course) => {
           if ((course._id ?? course.id) !== courseId) {
             return course;

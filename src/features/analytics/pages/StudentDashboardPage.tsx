@@ -9,6 +9,7 @@ import {
 import { Link } from "react-router-dom";
 import { StatCard } from "../../../components/common/StatCard";
 import { CourseGridSkeleton } from "../../../components/skeletons/CourseGridSkeleton";
+import { StatCardSkeletonGrid } from "../../../components/skeletons/StatCardSkeleton";
 import { Card } from "../../../components/ui/Card";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useCourses } from "../../courses/hooks/useCourses";
@@ -18,7 +19,11 @@ import { useStudentAnalytics } from "../hooks/useAnalytics";
 const fallbackIcons = [Sparkles, BookOpen, TrendingUp];
 
 export function StudentDashboardPage() {
-  const stats = useStudentAnalytics();
+  const {
+    stats,
+    isLoading: isAnalyticsLoading,
+    error: analyticsError,
+  } = useStudentAnalytics();
   const { courses, isLoading } = useCourses("student");
   const { user } = useAuth();
   const enrolledCourses = courses.filter((course) => course.isEnrolled);
@@ -31,14 +36,21 @@ export function StudentDashboardPage() {
       title={`Welcome back, ${user?.name.split(" ")[0] ?? "Learner"}`}
       description="A quick overview of your learning flow, progress, and personalized recommendations."
     >
-      <div className="grid gap-2.5 xl:grid-cols-3">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon ?? fallbackIcons[index];
-          return (
-            <StatCard key={stat.id} stat={stat} icon={<Icon size={16} />} />
-          );
-        })}
-      </div>
+      {analyticsError ? (
+        <p className="text-sm font-medium text-danger-700">{analyticsError}</p>
+      ) : null}
+      {isAnalyticsLoading ? (
+        <StatCardSkeletonGrid />
+      ) : (
+        <div className="grid gap-2.5 xl:grid-cols-3">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon ?? fallbackIcons[index];
+            return (
+              <StatCard key={stat.id} stat={stat} icon={<Icon size={16} />} />
+            );
+          })}
+        </div>
+      )}
 
       <Card className="space-y-4 p-5">
         <div className="flex items-center justify-between gap-3">

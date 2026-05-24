@@ -44,6 +44,7 @@ export interface Course {
   __v?: number;
   difficulty?: string;
   modules?: Module[];
+  enrollmentId?: string;
 }
 
 export interface Module {
@@ -136,6 +137,7 @@ export interface CourseFormData {
   price: string;
   currency: string;
   isFree: boolean;
+  isPublished?: boolean;
   thumbnail: File | null;
   thumbnailPreview: string;
   modules: Module[];

@@ -7,11 +7,8 @@ import type { AppDispatch, RootState } from "../../../store/store";
 import {
   fetchAdminAnalytics,
   fetchInstructorAnalytics,
+  fetchStudentAnalytics,
 } from "../store/analyticsStore";
-import type {
-  AdminAnalyticsResponse,
-  InstructorAnalyticsResponse,
-} from "../services/analyticsService";
 
 export type StatWithIcon = DashboardStat & { icon: ElementType };
 
@@ -27,8 +24,43 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-export function useStudentAnalytics(): StatWithIcon[] {
-  return [];
+export function useStudentAnalytics() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { student, isLoading, error } = useSelector(
+    (state: RootState) => state.analytics,
+  );
+
+  useEffect(() => {
+    void dispatch(fetchStudentAnalytics());
+  }, [dispatch]);
+
+  const stats: StatWithIcon[] = student
+    ? [
+        {
+          id: "1",
+          label: "Enrolled Courses",
+          value: formatNumber(student.enrolledCourses),
+          tone: "brand",
+          icon: BookOpen,
+        },
+        {
+          id: "2",
+          label: "Completed Courses",
+          value: formatNumber(student.completedCourses),
+          tone: "success",
+          icon: Users,
+        },
+        {
+          id: "3",
+          label: "Average Score",
+          value: `${student.avgScore}%`,
+          tone: "warning",
+          icon: TrendingUp,
+        },
+      ]
+    : [];
+
+  return { stats, isLoading, error };
 }
 
 export function useInstructorAnalytics() {
@@ -176,28 +208,29 @@ export function useCourseManagementAnalytics(role?: UserRole) {
     void dispatch(fetchInstructorAnalytics());
   }, [dispatch, role]);
 
-  const dashboardData = admin || instructor;
+  const dashboardData = role === "admin" ? admin : instructor;
 
-  const totalStudents = instructor
-    ? instructor.totalStudents
-    : admin?.totalEnrolledStudent || 0;
+  const totalStudents =
+    role === "admin"
+      ? (admin?.totalEnrolledStudent ?? admin?.totalUsers ?? 0)
+      : (instructor?.totalStudents ?? 0);
 
   const stats: StatWithIcon[] = dashboardData
     ? [
         {
           id: "1",
           label: "Total Courses",
-          value: formatNumber(dashboardData.totalCourses || 0),
+          value: formatNumber(dashboardData.totalCourses ?? 0),
           tone: "brand",
-          delta: `${formatNumber(dashboardData.activeCourses || 0)} published`,
+          delta: `${formatNumber(dashboardData.activeCourses ?? 0)} published`,
           icon: BookOpen,
         },
         {
           id: "2",
           label: "Total Lessons",
-          value: formatNumber(dashboardData.totalLessons || 0),
+          value: formatNumber(dashboardData.totalLessons ?? 0),
           tone: "success",
-          delta: `${formatNumber(dashboardData.totalCourses || 0)} courses`,
+          delta: `${formatNumber(dashboardData.totalCourses ?? 0)} courses`,
           icon: Video,
         },
         {

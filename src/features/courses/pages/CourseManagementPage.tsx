@@ -242,6 +242,7 @@ export function CourseManagementPage() {
         updateCoursePublishStatus({
           courseId,
           isPublished: pendingStatusChange.isPublished,
+          course: pendingStatusChange.course,
         }),
       ).unwrap();
       setStatusSuccessMessage(result.message);

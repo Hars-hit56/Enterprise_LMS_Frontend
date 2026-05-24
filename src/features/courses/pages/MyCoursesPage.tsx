@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { EmptyState } from "../../../components/common/EmptyState";
 import { CourseGridSkeleton } from "../../../components/skeletons/CourseGridSkeleton";
 import { PillSkeleton } from "../../../components/skeletons/PillSkeleton";
@@ -6,18 +5,17 @@ import { Button } from "../../../components/ui/Button";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { CourseGrid } from "../components/CourseGrid";
 import { useCourses } from "../hooks/useCourses";
+import { useMyCourses } from "../hooks/useMyCourses";
 
 export function MyCoursesPage() {
   const { user } = useAuth();
   const role = user?.role ?? "student";
-  const { courses, isLoading } = useCourses(role);
-  const enrolledCourses = useMemo(
-    () =>
-      role === "student" ?
-        courses.filter((course) => course.isEnrolled)
-      : courses,
-    [courses, role],
-  );
+  const isStudent = role === "student";
+  const myCourses = useMyCourses(isStudent);
+  const roleCourses = useCourses(role, !isStudent);
+  const courses = isStudent ? myCourses.courses : roleCourses.courses;
+  const isLoading = isStudent ? myCourses.isLoading : roleCourses.isLoading;
+  const error = isStudent ? myCourses.error : roleCourses.error;
 
   return (
     <section className="space-y-5">
@@ -37,19 +35,21 @@ export function MyCoursesPage() {
           <PillSkeleton />
         ) : (
           <Button variant="secondary" className="px-3 py-2 text-[12px]">
-            {enrolledCourses.length} active
+            {courses.length} active
           </Button>
         )}
       </div>
       {isLoading ?
         <CourseGridSkeleton count={3} columns="wide" />
-      : enrolledCourses.length === 0 ?
+      : error ?
+        <p className="text-sm font-medium text-danger-700">{error}</p>
+      : courses.length === 0 ?
         <EmptyState
           title="No enrolled courses yet"
           description="Once you join a course, it will show up here with progress and quick resume actions."
         />
       : <CourseGrid
-          courses={enrolledCourses}
+          courses={courses}
           columns="wide"
           variant="enrolled"
         />

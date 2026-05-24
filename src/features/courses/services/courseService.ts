@@ -5,7 +5,9 @@ import {
   API_ENDPOINT_COURSE_EDIT,
   API_ENDPOINT_COURSE_GET_BY_ID,
   API_ENDPOINT_COURSE_GET_CREATOR,
+  API_ENDPOINT_COURSE_GET_PUBLISHED,
   API_ENDPOINT_COURSE_REMOVE,
+  API_ENDPOINT_ENROLLMENT_MY,
 } from "../../../services/apiTypes";
 import type { AxiosError } from "axios";
 
@@ -25,6 +27,19 @@ type UpdateCourseStatusApiResponse =
       message?: string;
     };
 
+interface Enrollment {
+  _id?: string;
+  id?: string;
+  courseId: Course | string;
+  progress?: number;
+}
+
+type EnrollmentsApiResponse =
+  | Enrollment[]
+  | {
+      data?: Enrollment[];
+    };
+
 type FormDataValue = Blob | boolean | number | string | null | undefined;
 type FormDataFields = Record<string, FormDataValue>;
 
@@ -34,6 +49,75 @@ function normalizeCreatorCourses(
   const courseData = "data" in response ? response.data : response;
 
   return Array.isArray(courseData) ? courseData : [courseData];
+}
+
+function normalizeEnrollments(response: EnrollmentsApiResponse): Enrollment[] {
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  return response.data ?? [];
+}
+
+function getCourseLessonCount(course: Course) {
+  return (
+    course.modules?.reduce(
+      (total, module) =>
+        total + (module.lectures?.length ?? module.lessons?.length ?? 0),
+      0,
+    ) ?? 0
+  );
+}
+
+function getCourseRating(course: Course) {
+  const reviewRatings = course.reviews
+    ?.map((review) =>
+      typeof review === "object" && review && "rating" in review
+        ? Number(review.rating)
+        : Number.NaN,
+    )
+    .filter(Number.isFinite);
+
+  if (!reviewRatings?.length) {
+    return course.rating ?? 0;
+  }
+
+  return (
+    Math.round(
+      (reviewRatings.reduce((total, rating) => total + rating, 0) /
+        reviewRatings.length) *
+        10,
+    ) / 10
+  );
+}
+
+function mapApiCourse(course: Course): Course {
+  const id = course._id ?? course.id ?? "";
+  const lessons = course.lessons ?? getCourseLessonCount(course);
+  const enrolledStudents = course.enrolledStudents ?? [];
+
+  return {
+    ...course,
+    id,
+    instructor: course.instructor ?? course.creator ?? "Instructor",
+    duration: `${lessons} lessons`,
+    students: enrolledStudents.length,
+    rating: getCourseRating(course),
+    thumbnail: course.thumbnail ?? course.title.charAt(0).toUpperCase(),
+  };
+}
+
+function mapEnrollmentCourse(enrollment: Enrollment): Course | null {
+  if (typeof enrollment.courseId === "string") {
+    return null;
+  }
+
+  return {
+    ...mapApiCourse(enrollment.courseId),
+    enrollmentId: enrollment._id ?? enrollment.id,
+    progress: enrollment.progress ?? 0,
+    isEnrolled: true,
+  };
 }
 
 function appendFormDataFields(formData: FormData, fields: FormDataFields) {
@@ -74,17 +158,62 @@ export function buildCreateCourseFormData(course: CourseFormData) {
     price: course.price,
     currency: course.currency,
     isFree: course.isFree,
+    isPublished: course.isPublished,
     modules: JSON.stringify(modules),
     thumbnail: course.thumbnail,
   });
 }
 
-export function buildCoursePublishStatusFormData(isPublished: boolean) {
-  return appendFormDataFields(new FormData(), { isPublished });
+function buildCourseFormDataFromCourse(
+  course: Course,
+  isPublished: boolean,
+): CourseFormData {
+  return {
+    title: course.title,
+    description: course.description ?? "",
+    category: course.category,
+    difficulty: course.difficulty ?? course.level ?? "",
+    price: String(course.price ?? ""),
+    currency: course.currency ?? "INR",
+    isFree: Boolean(course.isFree),
+    isPublished,
+    thumbnail: null,
+    thumbnailPreview: course.thumbnail ?? "",
+    modules: (course.modules ?? []).map((module, moduleIndex) => ({
+      ...module,
+      id: module.id ?? module._id ?? `module-${moduleIndex}`,
+      title: module.title ?? module.moduleTitle ?? "",
+      lessons: (module.lessons ?? module.lectures ?? []).map(
+        (lesson, lessonIndex) => {
+          if (typeof lesson === "string") {
+            return {
+              id: lesson,
+              title: "",
+              isFree: false,
+            };
+          }
+
+          return {
+            ...lesson,
+            id: lesson.id ?? lesson._id ?? `lesson-${moduleIndex}-${lessonIndex}`,
+            title: lesson.title ?? lesson.lectureTitle ?? "",
+            isFree: lesson.isFree ?? lesson.isPreviewFree ?? false,
+          };
+        },
+      ),
+    })),
+  };
 }
 
 export const courseService = {
   async getCourses(role: UserRole) {
+    if (role === "student") {
+      const response = await apiClient.get<Course[]>(
+        API_ENDPOINT_COURSE_GET_PUBLISHED,
+      );
+      return response.data.map(mapApiCourse);
+    }
+
     if (role !== "instructor") {
       return [];
     }
@@ -93,7 +222,17 @@ export const courseService = {
       API_ENDPOINT_COURSE_GET_CREATOR,
     );
 
-    return normalizeCreatorCourses(response.data);
+    return normalizeCreatorCourses(response.data).map(mapApiCourse);
+  },
+
+  async getMyCourses() {
+    const response = await apiClient.get<EnrollmentsApiResponse>(
+      API_ENDPOINT_ENROLLMENT_MY,
+    );
+
+    return normalizeEnrollments(response.data)
+      .map(mapEnrollmentCourse)
+      .filter((course): course is Course => Boolean(course));
   },
 
   async getCourseById(courseId: string) {
@@ -101,7 +240,9 @@ export const courseService = {
       `${API_ENDPOINT_COURSE_GET_BY_ID}/${courseId}`,
     );
 
-    return "data" in response.data ? response.data.data : response.data;
+    const course = "data" in response.data ? response.data.data : response.data;
+
+    return mapApiCourse(course);
   },
 
   async createCourse(course: CourseFormData) {
@@ -144,25 +285,31 @@ export const courseService = {
     }
   },
 
-  async updateCoursePublishStatus(courseId: string, isPublished: boolean) {
+  async updateCoursePublishStatus(
+    courseId: string,
+    isPublished: boolean,
+    course: Course,
+  ) {
     try {
       const response = await apiClient.put<UpdateCourseStatusApiResponse>(
         `${API_ENDPOINT_COURSE_EDIT}/${courseId}`,
-        buildCoursePublishStatusFormData(isPublished),
+        buildCreateCourseFormData(
+          buildCourseFormDataFromCourse(course, isPublished),
+        ),
       );
       const responseBody = response.data;
-      const course =
+      const updatedCourse =
         "data" in responseBody
-          ? responseBody.data
+          ? responseBody.data && mapApiCourse(responseBody.data)
           : "title" in responseBody
-            ? responseBody
+            ? mapApiCourse(responseBody)
             : undefined;
       const message =
         "message" in responseBody ? responseBody.message : undefined;
 
       return {
         courseId,
-        course,
+        course: updatedCourse,
         isPublished,
         message:
           message ?? `Course ${isPublished ? "published" : "moved to draft"}.`,

@@ -3,6 +3,7 @@ import { apiClient } from "../../../services/apiClient";
 import {
   API_ENDPOINT_ANALYTICS_ADMIN,
   API_ENDPOINT_ANALYTICS_INSTRUCTOR,
+  API_ENDPOINT_ANALYTICS_STUDENT,
 } from "../../../services/apiTypes";
 
 export interface InstructorAnalyticsResponse {
@@ -20,11 +21,17 @@ export interface AdminAnalyticsResponse {
 
   //Remaining field in API's we should add it
   totalRevenue: number;
-  totalCourses: number;
-  totalInstructor: number;
-  totalStudents: number;
-  totalEnrolledStudent: number;
-  totalLessons: number;
+  totalCourses?: number;
+  totalInstructor?: number;
+  totalStudents?: number;
+  totalEnrolledStudent?: number;
+  totalLessons?: number;
+}
+
+export interface StudentAnalyticsResponse {
+  enrolledCourses: number;
+  completedCourses: number;
+  avgScore: number;
 }
 
 function extractErrorMessage(error: unknown, fallback: string) {
@@ -63,6 +70,20 @@ export const analyticsService = {
     } catch (error) {
       throw new Error(
         extractErrorMessage(error, "Failed to load admin analytics."),
+      );
+    }
+  },
+
+  async getStudentAnalytics() {
+    try {
+      const response = await apiClient.get<StudentAnalyticsResponse>(
+        API_ENDPOINT_ANALYTICS_STUDENT,
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        extractErrorMessage(error, "Failed to load student analytics."),
       );
     }
   },

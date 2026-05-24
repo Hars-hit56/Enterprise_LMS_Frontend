@@ -3,11 +3,13 @@ import { analyticsService } from "../services/analyticsService";
 import type {
   AdminAnalyticsResponse,
   InstructorAnalyticsResponse,
+  StudentAnalyticsResponse,
 } from "../services/analyticsService";
 
 export interface AnalyticsState {
   admin: AdminAnalyticsResponse | null;
   instructor: InstructorAnalyticsResponse | null;
+  student: StudentAnalyticsResponse | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -15,6 +17,7 @@ export interface AnalyticsState {
 const initialState: AnalyticsState = {
   admin: null,
   instructor: null,
+  student: null,
   isLoading: false,
   error: null,
 };
@@ -35,6 +38,17 @@ export const fetchInstructorAnalytics = createAsyncThunk<
 export const fetchAdminAnalytics = createAsyncThunk<AdminAnalyticsResponse>(
   "analytics/fetchAdminAnalytics",
   async () => analyticsService.getAdminAnalytics(),
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as { analytics: AnalyticsState };
+      return !state.analytics.isLoading;
+    },
+  },
+);
+
+export const fetchStudentAnalytics = createAsyncThunk<StudentAnalyticsResponse>(
+  "analytics/fetchStudentAnalytics",
+  async () => analyticsService.getStudentAnalytics(),
   {
     condition: (_, { getState }) => {
       const state = getState() as { analytics: AnalyticsState };
@@ -73,6 +87,19 @@ const analyticsSlice = createSlice({
       .addCase(fetchAdminAnalytics.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message ?? "Failed to load admin analytics.";
+      })
+      .addCase(fetchStudentAnalytics.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchStudentAnalytics.fulfilled, (state, action) => {
+        state.student = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(fetchStudentAnalytics.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error =
+          action.error.message ?? "Failed to load student analytics.";
       });
   },
 });

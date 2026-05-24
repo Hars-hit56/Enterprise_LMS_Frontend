@@ -31,7 +31,7 @@ export function Topbar() {
         >
           <PanelLeft size={16} />
         </button>
-        <label className="flex max-w-xl flex-1 items-center gap-2.5 rounded-xl border border-line-100 bg-soft px-3 py-2 text-ink-500">
+        {/* <label className="flex max-w-xl flex-1 items-center gap-2.5 rounded-xl border border-line-100 bg-soft px-3 py-2 text-ink-500">
           <Search size={15} />
           <input
             className="w-full border-none bg-transparent text-[12px] outline-none placeholder:text-ink-500"
@@ -39,7 +39,7 @@ export function Topbar() {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
           />
-        </label>
+        </label> */}
       </div>
       <div className="hidden items-center gap-3 md:flex">
         <div className="grid h-8 w-8 place-items-center rounded-full bg-brand-100 text-[11px] font-medium text-brand-600">

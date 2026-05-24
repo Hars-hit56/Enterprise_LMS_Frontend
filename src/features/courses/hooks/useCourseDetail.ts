@@ -21,7 +21,8 @@ export function useCourseDetail(courseId?: string) {
 
   return {
     course: courseMatchesRoute ? selectedCourse : null,
-    isLoading: isDetailLoading || Boolean(courseId && !courseMatchesRoute),
+    isLoading:
+      isDetailLoading || Boolean(courseId && !courseMatchesRoute && !detailError),
     error: detailError,
   };
 }

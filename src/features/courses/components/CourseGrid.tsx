@@ -54,13 +54,35 @@ function getCourseDetailSource(
   return course.isRecommended ? "recommended" : "catalog";
 }
 
+function isImageUrl(value: string | undefined) {
+  return Boolean(value && /^https?:\/\//i.test(value));
+}
+
+function formatCoursePrice(course: Course) {
+  if (course.isFree) {
+    return "Free";
+  }
+
+  const currency = course.currency === "INR" ? "\u20B9" : (course.currency ?? "");
+  const price =
+    typeof course.price === "number" ?
+      new Intl.NumberFormat("en-IN").format(course.price)
+    : course.price;
+
+  return `${currency} ${price}`.trim();
+}
+
 function CourseCard({ course, variant }: CourseCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const showProgress = course.isEnrolled && variant !== "dashboard";
+  const showProgress =
+    typeof course.progress === "number" &&
+    course.isEnrolled &&
+    variant !== "dashboard";
   const progressLabel = course.nextLesson ?? "In progress";
   const source = getCourseDetailSource(course, variant);
   const isStudent = user?.role === "student";
+  const progress = course.progress ?? 0;
 
   return (
     <div
@@ -85,10 +107,18 @@ function CourseCard({ course, variant }: CourseCardProps) {
       role={isStudent ? "link" : undefined}
       tabIndex={isStudent ? 0 : undefined}
     >
-      <div className="grid min-h-[124px] place-items-center rounded-t-[15px] border-b border-line-100 bg-[linear-gradient(180deg,#e9eef6_0%,#dde5f0_100%)] px-4 py-4">
-        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/70 text-[22px]">
-          {course.thumbnail}
-        </div>
+      <div className="grid h-[150px] place-items-center overflow-hidden rounded-t-[15px] border-b border-line-100 bg-[linear-gradient(180deg,#e9eef6_0%,#dde5f0_100%)]">
+        {isImageUrl(course.thumbnail) ? (
+          <img
+            src={course.thumbnail}
+            alt={course.title}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/70 text-[22px]">
+            {course.thumbnail}
+          </div>
+        )}
       </div>
 
       <div className="flex h-full flex-col gap-2.5 rounded-b-[15px] bg-white px-5 py-5 transition hover:bg-soft">
@@ -111,7 +141,7 @@ function CourseCard({ course, variant }: CourseCardProps) {
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Users size={13} />
-            {course.students.toLocaleString()}
+            {course.students}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Clock3 size={13} />
@@ -119,20 +149,24 @@ function CourseCard({ course, variant }: CourseCardProps) {
           </span>
         </div>
 
-        <div
-          className={`mt-auto space-y-2 pt-0.5 ${showProgress ? "" : "opacity-0"}`}
-        >
-          <div className="flex items-center justify-between text-[10px] font-medium text-ink-500">
-            <span>{progressLabel}</span>
-            <span>{course.progress}%</span>
-          </div>
-          <div className="h-1.5 rounded-full bg-line-100">
-            <div
-              className={`h-1.5 rounded-full ${progressTone(course.progress)}`}
-              style={{ width: `${showProgress ? course.progress : 0}%` }}
-            />
-          </div>
+        <div className="mt-auto pt-1 text-[13px] font-semibold text-ink-950">
+          {formatCoursePrice(course)}
         </div>
+
+        {showProgress ? (
+          <div className="space-y-2 pt-0.5">
+            <div className="flex items-center justify-between text-[10px] font-medium text-ink-500">
+              <span>{progressLabel}</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-line-100">
+              <div
+                className={`h-1.5 rounded-full ${progressTone(progress)}`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
