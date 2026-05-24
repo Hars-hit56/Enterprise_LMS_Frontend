@@ -3,6 +3,7 @@ import type { UserRole } from '../../../types'
 import type { AuthUser } from '../services/authService'
 import { authService } from '../services/authService'
 import type { LogoutResponse } from '../services/authService'
+import type { UpdateProfilePayload } from '../services/authService'
 
 export interface AuthState {
   user: AuthUser | null
@@ -55,6 +56,20 @@ export const signupUser = createAsyncThunk<AuthResult, SignupPayload>(
 export const logoutUser = createAsyncThunk<LogoutResponse>(
   'auth/logout',
   async () => authService.logout(),
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as { auth: AuthState }
+      return !state.auth.isLoading
+    },
+  },
+)
+
+export const updateProfile = createAsyncThunk<
+  { user: AuthUser; message: string },
+  UpdateProfilePayload
+>(
+  'auth/updateProfile',
+  async (payload) => authService.updateProfile(payload),
   {
     condition: (_, { getState }) => {
       const state = getState() as { auth: AuthState }
@@ -129,6 +144,21 @@ const authSlice = createSlice({
         state.token = null
         state.isLoading = false
         state.error = action.error.message ?? null
+        state.successMessage = null
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+        state.successMessage = null
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.user = action.payload.user
+        state.isLoading = false
+        state.successMessage = action.payload.message
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.error.message ?? 'Failed to update profile.'
         state.successMessage = null
       })
   },

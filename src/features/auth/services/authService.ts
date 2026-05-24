@@ -9,6 +9,7 @@ import {
   API_ENDPOINT_AUTH_LOGIN,
   API_ENDPOINT_AUTH_LOGOUT,
   API_ENDPOINT_AUTH_SIGNUP,
+  API_ENDPOINT_USER_UPDATE_PROFILE,
 } from "../../../services/apiTypes";
 import { authUserStorageKey } from "../../../utils/constants";
 
@@ -17,7 +18,15 @@ export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
+  description?: string;
   photoUrl?: string;
+}
+
+export interface UpdateProfilePayload {
+  name: string;
+  email: string;
+  description: string;
+  photoUrl?: File | null;
 }
 
 interface SignupPayload {
@@ -43,6 +52,14 @@ interface LoginResponse {
   user: AuthUser;
   message: string;
 }
+
+type UpdateProfileResponse =
+  | AuthUser
+  | {
+      data?: AuthUser;
+      message?: string;
+      user?: AuthUser;
+    };
 
 export interface LogoutResponse {
   message: string;
@@ -135,6 +152,34 @@ async function logoutRequest() {
   }
 }
 
+function buildProfileFormData(payload: UpdateProfilePayload) {
+  const formData = new FormData();
+
+  formData.append("name", payload.name);
+  formData.append("email", payload.email);
+  formData.append("description", payload.description);
+
+  if (payload.photoUrl) {
+    formData.append("photoUrl", payload.photoUrl);
+  }
+
+  return formData;
+}
+
+function normalizeProfileResponse(response: UpdateProfileResponse) {
+  if ("_id" in response) {
+    return {
+      user: response,
+      message: "Profile updated successfully.",
+    };
+  }
+
+  return {
+    user: response.user ?? response.data,
+    message: response.message ?? "Profile updated successfully.",
+  };
+}
+
 export const authService = {
   async login(email: string, password: string) {
     const payload: LoginPayload = { email, password };
@@ -175,6 +220,42 @@ export const authService = {
     } finally {
       saveToken(null);
       saveUser(null);
+    }
+  },
+
+  async updateProfile(payload: UpdateProfilePayload) {
+    try {
+      const response = await apiClient.put<UpdateProfileResponse>(
+        API_ENDPOINT_USER_UPDATE_PROFILE,
+        buildProfileFormData(payload),
+      );
+      const result = normalizeProfileResponse(response.data);
+
+      if (!result.user) {
+        throw new Error("Profile update did not return a user.");
+      }
+
+      const currentUser = getStoredUser();
+      const updatedUser = {
+        ...currentUser,
+        ...result.user,
+      };
+
+      saveUser(updatedUser);
+
+      return {
+        user: updatedUser,
+        message: result.message,
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<{
+        message?: string;
+        error?: string;
+      }>;
+      const message =
+        axiosError.response?.data?.message ?? axiosError.response?.data?.error;
+
+      throw new Error(message ?? "Failed to update profile.");
     }
   },
 

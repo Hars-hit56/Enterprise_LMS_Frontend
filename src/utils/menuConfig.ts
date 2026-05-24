@@ -5,6 +5,7 @@ import {
   NotebookTabs,
   PlusCircle,
   ShieldCheck,
+  UserRound,
   Users,
 } from "lucide-react";
 import type { MenuSection, UserRole } from "../types";
@@ -32,6 +33,12 @@ const roleMenus: Record<UserRole, MenuSection[]> = {
           icon: Library,
           roles: ["student"],
         },
+        // {
+        //   label: "Profile",
+        //   path: "profile",
+        //   icon: UserRound,
+        //   roles: ["student"],
+        // },
       ],
     },
   ],
@@ -75,6 +82,12 @@ const roleMenus: Record<UserRole, MenuSection[]> = {
           icon: Users,
           roles: ["instructor"],
         },
+        // {
+        //   label: "Profile",
+        //   path: "profile",
+        //   icon: UserRound,
+        //   roles: ["instructor"],
+        // },
       ],
     },
   ],
@@ -100,6 +113,12 @@ const roleMenus: Record<UserRole, MenuSection[]> = {
           icon: Library,
           roles: ["admin"],
         },
+        // {
+        //   label: "Profile",
+        //   path: "profile",
+        //   icon: UserRound,
+        //   roles: ["admin"],
+        // },
         // {
         //   label: "Reports",
         //   path: "reports",

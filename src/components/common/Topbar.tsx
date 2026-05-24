@@ -1,12 +1,13 @@
-import { Menu, PanelLeft, Search } from "lucide-react";
+import { Menu, PanelLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useAppStore } from "../../store/appStore";
 import { initials } from "../../utils/format";
 
 export function Topbar() {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const { searchQuery, setSearchQuery, toggleSidebar, toggleSidebarCollapsed } =
-    useAppStore();
+  const { toggleSidebar, toggleSidebarCollapsed } = useAppStore();
 
   if (!user) {
     return null;
@@ -41,9 +42,21 @@ export function Topbar() {
           />
         </label> */}
       </div>
-      <div className="hidden items-center gap-3 md:flex">
-        <div className="grid h-8 w-8 place-items-center rounded-full bg-brand-100 text-[11px] font-medium text-brand-600">
-          {initials(user.name)}
+      <button
+        type="button"
+        className="hidden items-center gap-3 rounded-xl px-2 py-1 text-left transition hover:bg-soft md:flex"
+        onClick={() => navigate(`/${user.role}/profile`)}
+      >
+        <div className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-brand-100 text-[11px] font-medium text-brand-600">
+          {user.photoUrl ? (
+            <img
+              src={user.photoUrl}
+              alt={user.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            initials(user.name)
+          )}
         </div>
         <div className="min-w-0">
           <p className="truncate text-[13px] font-medium text-ink-950">
@@ -51,7 +64,7 @@ export function Topbar() {
           </p>
           <p className="text-[11px] capitalize text-ink-500">{user.role}</p>
         </div>
-      </div>
+      </button>
     </header>
   );
 }

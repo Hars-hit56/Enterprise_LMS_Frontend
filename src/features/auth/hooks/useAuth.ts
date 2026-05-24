@@ -6,7 +6,9 @@ import {
   loginUser,
   logoutUser,
   signupUser,
+  updateProfile,
 } from "../store/authStore";
+import type { UpdateProfilePayload } from "../services/authService";
 
 export function useAuth() {
   const dispatch = useDispatch<AppDispatch>();
@@ -29,6 +31,10 @@ export function useAuth() {
   const logout = async () => {
     await dispatch(logoutUser());
   };
+  const saveProfile = async (payload: UpdateProfilePayload) => {
+    const result = await dispatch(updateProfile(payload)).unwrap();
+    return result.user;
+  };
   const clearMessage = () => {
     dispatch(clearAuthMessage());
   };
@@ -41,6 +47,7 @@ export function useAuth() {
     login,
     signup,
     logout,
+    saveProfile,
     clearMessage,
   };
 }

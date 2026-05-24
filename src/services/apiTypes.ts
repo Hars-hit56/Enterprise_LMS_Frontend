@@ -3,6 +3,7 @@ export const API_ENDPOINT_AUTH_LOGIN = "/api/auth/login";
 export const API_ENDPOINT_AUTH_LOGOUT = "/api/auth/logout";
 export const API_ENDPOINT_AUTH_SIGNUP = "/api/auth/signup";
 
+export const API_ENDPOINT_USER_UPDATE_PROFILE = "/api/user/updateprofile";
 export const API_ENDPOINT_USERS = "/api/users";
 
 export const API_ENDPOINT_COURSE_CREATE = "/api/course/create";
