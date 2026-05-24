@@ -1,5 +1,5 @@
-import { CheckCircle2, Play } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Play } from "lucide-react";
+import { useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { EmptyState } from "../../../components/common/EmptyState";
 import { CoursePlayerSkeleton } from "../../../components/skeletons/CourseDetailSkeleton";
@@ -84,7 +84,6 @@ export function CoursePlayerPage() {
     source === "edit"
       ? `/${role}/courses/edit/${courseId}`
       : `/${role}/courses/${courseId}?source=${source}`;
-  const [, setCompletedLessonIds] = useState<string[]>([]);
   const selectedLesson =
     allLessons.find((lesson) => lesson.id === lessonId) ?? allLessons[0];
 

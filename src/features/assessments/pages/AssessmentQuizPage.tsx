@@ -93,6 +93,7 @@ export function AssessmentQuizPage() {
       return;
     }
 
+    const currentAssessmentId = assessmentId;
     let isMounted = true;
 
     async function loadResult() {
@@ -101,7 +102,7 @@ export function AssessmentQuizPage() {
 
       try {
         const assessmentResult =
-          await assessmentService.getAssessmentResult(assessmentId);
+          await assessmentService.getAssessmentResult(currentAssessmentId);
 
         if (isMounted) {
           setResult(assessmentResult);
