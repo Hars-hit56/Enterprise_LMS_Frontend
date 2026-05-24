@@ -29,26 +29,6 @@ import { Card } from "../../../components/ui/Card";
 import { DashboardSection } from "../components/DashboardSection";
 import { useAdminAnalytics } from "../hooks/useAnalytics";
 
-// --- Mock Data for Charts ---
-const engagementData = [
-  { day: "Mon", total: 420, active: 40 },
-  { day: "Tue", total: 380, active: 50 },
-  { day: "Wed", total: 510, active: 30 },
-  { day: "Thu", total: 470, active: 60 },
-  { day: "Fri", total: 390, active: 50 },
-  { day: "Sat", total: 250, active: 25 },
-  { day: "Sun", total: 180, active: 15 },
-];
-
-const progressData = [
-  { week: "Week 1", value: 25 },
-  { week: "Week 2", value: 38 },
-  { week: "Week 3", value: 52 },
-  { week: "Week 4", value: 61 },
-  { week: "Week 5", value: 69 },
-  { week: "Week 6", value: 74 },
-];
-
 const distributionData = [
   { name: "Development", value: 42, color: "#2563eb" },
   { name: "Data Science", value: 28, color: "#22c55e" },
@@ -59,7 +39,8 @@ const distributionData = [
 const fallbackIcons = [Users, GraduationCap, TrendingUp, CircleAlert];
 
 export function AdminDashboardPage() {
-  const { stats, isLoading, error } = useAdminAnalytics();
+  const { stats, engagementData, progressData, isLoading, error } =
+    useAdminAnalytics();
 
   return (
     <DashboardSection
@@ -105,7 +86,7 @@ export function AdminDashboardPage() {
                   stroke="#f1f5f9"
                 />
                 <XAxis
-                  dataKey="day"
+                  dataKey="name"
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fill: "#64748b" }}
@@ -128,14 +109,14 @@ export function AdminDashboardPage() {
                   wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
                 />
                 <Bar
-                  dataKey="total"
+                  dataKey="totalUsers"
                   name="Total Users"
                   fill="#2563eb"
                   radius={[4, 4, 0, 0]}
                   barSize={32}
                 />
                 <Bar
-                  dataKey="active"
+                  dataKey="activeUsers"
                   name="Active Users"
                   fill="#22c55e"
                   radius={[4, 4, 0, 0]}
@@ -160,7 +141,7 @@ export function AdminDashboardPage() {
                   stroke="#f1f5f9"
                 />
                 <XAxis
-                  dataKey="week"
+                  dataKey="name"
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fill: "#64748b" }}
@@ -186,7 +167,7 @@ export function AdminDashboardPage() {
                 />
                 <Line
                   type="monotone"
-                  dataKey="value"
+                  dataKey="progress"
                   name="Progress"
                   stroke="#2563eb"
                   strokeWidth={2}

@@ -166,13 +166,15 @@ export function useAdminAnalytics() {
           label: "Total Users",
           value: formatNumber(admin.totalUsers),
           tone: "brand",
+          delta: `${formatNumber(admin?.totalStudents)} students ${formatNumber(admin?.totalInstructor)} instructors `,
           icon: Users,
         },
         {
           id: "2",
-          label: "Active Courses",
-          value: formatNumber(admin.activeCourses),
+          label: "Total Courses",
+          value: formatNumber(admin.totalCourses),
           tone: "success",
+          delta: `${formatNumber(admin?.activeCourses)} published`,
           icon: BookOpen,
         },
         {
@@ -192,7 +194,13 @@ export function useAdminAnalytics() {
       ]
     : [];
 
-  return { stats, isLoading, error };
+  return {
+    stats,
+    engagementData: admin?.engagementData ?? [],
+    progressData: admin?.progressData ?? [],
+    isLoading,
+    error,
+  };
 }
 
 export function useCourseManagementAnalytics(role?: UserRole) {

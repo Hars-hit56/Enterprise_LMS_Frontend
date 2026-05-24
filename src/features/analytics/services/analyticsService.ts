@@ -28,13 +28,21 @@ export interface AdminAnalyticsResponse {
   activeCourses: number;
   completionRate: number;
 
-  //Remaining field in API's we should add it
   totalRevenue: number;
-  totalCourses?: number;
-  totalInstructor?: number;
-  totalStudents?: number;
-  totalEnrolledStudent?: number;
-  totalLessons?: number;
+  totalCourses: number;
+  totalInstructor: number;
+  totalStudents: number;
+  totalEnrolledStudent: number;
+  totalLessons: number;
+  engagementData?: {
+    name: string;
+    activeUsers: number;
+    totalUsers: number;
+  }[];
+  progressData?: {
+    name: string;
+    progress: number;
+  }[];
 }
 
 export interface StudentAnalyticsResponse {
