@@ -1,39 +1,75 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { AssessmentForm } from "../components/EditAssessmentForm";
 import { useAssessments } from "../hooks/useAssessments";
 import { useCourses } from "../../courses/hooks/useCourses";
 import { useAuth } from "../../auth/hooks/useAuth";
 import type { AssessmentFormData } from "../services/assessmentService";
+import type { AppDispatch, RootState } from "../../../store/store";
+import { Toast } from "../../../components/ui/Toast";
+import {
+  clearUpdateError,
+  updateAssessment,
+} from "../store/assessmentStore";
 
 export function EditAssessmentPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
+  const role = user?.role === "admin" ? "admin" : "instructor";
+  const sourceCourseId = searchParams.get("courseId");
   const { assessments } = useAssessments();
   const { courses } = useCourses(user?.role || "student");
+  const { isUpdating, updateError } = useSelector(
+    (state: RootState) => state.assessments,
+  );
 
   const assessment = assessments.find((a) => a.id === id);
-  const course =
-    assessment ? courses.find((c) => c.title === assessment.course) : null;
+  const course = assessment
+    ? courses.find((course) => {
+        const courseId = course._id ?? course.id;
+        return (
+          courseId === assessment.courseId ||
+          courseId === assessment.course ||
+          course.title === assessment.course
+        );
+      })
+    : null;
 
-  const handleSave = (data: AssessmentFormData) => {
-    // TODO: save assessment
-    console.log("Save assessment", data);
-    // Navigate back to course edit
+  const getBackPath = () => {
+    if (sourceCourseId) {
+      return `/${role}/courses/edit/${sourceCourseId}`;
+    }
+
     if (course) {
-      navigate(`../../courses/edit/${course.id}`);
-    } else {
-      navigate("../../courses");
+      return `/${role}/courses/edit/${course._id ?? course.id}`;
+    }
+
+    return `/${role}/courses`;
+  };
+
+  const handleSave = async (data: AssessmentFormData) => {
+    if (!id) {
+      return;
+    }
+
+    try {
+      await dispatch(
+        updateAssessment({ assessmentId: id, assessment: data }),
+      ).unwrap();
+      navigate(getBackPath(), {
+        replace: true,
+        state: { successMessage: "Assessment updated successfully." },
+      });
+    } catch {
+      // The slice stores the API error and the toast renders it.
     }
   };
 
   const handleCancel = () => {
-    // Navigate back to course edit
-    if (course) {
-      navigate(`../../courses/edit/${course.id}`);
-    } else {
-      navigate("../../courses");
-    }
+    navigate(getBackPath(), { replace: true });
   };
 
   if (!assessment) {
@@ -41,11 +77,22 @@ export function EditAssessmentPage() {
   }
 
   return (
-    <AssessmentForm
-      type="edit"
-      assessment={assessment}
-      onSave={handleSave}
-      onCancel={handleCancel}
-    />
+    <>
+      {updateError ? (
+        <Toast
+          message={updateError}
+          type="error"
+          onClose={() => dispatch(clearUpdateError())}
+        />
+      ) : null}
+      <AssessmentForm
+        type="edit"
+        assessment={assessment}
+        courses={courses}
+        isSaving={isUpdating}
+        onSave={handleSave}
+        onCancel={handleCancel}
+      />
+    </>
   );
 }

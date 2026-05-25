@@ -44,9 +44,8 @@ export function AssessmentForm({
   const [assessmentData, setAssessmentData] = useState<AssessmentFormData>({
     title: assessment?.title || "",
     description: assessment?.description || "",
-    course: assessment?.course || "",
+    course: assessment?.courseId || assessment?.course || "",
     timeLimit: assessment?.timeLimit || "",
-    totalMarks: assessment?.totalMarks || "",
     passingScore: assessment?.passingScore || "",
     // maxAttempts: assessment?.maxAttempts || "",
     questions: assessment?.questions || [createEmptyQuestion(1)],
@@ -200,7 +199,7 @@ export function AssessmentForm({
           />
         </label>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
           <Select
             label="Course"
             value={assessmentData.course}
@@ -232,17 +231,6 @@ export function AssessmentForm({
               }))
             }
             placeholder="30 min"
-          />
-          <Input
-            label="Total Marks"
-            value={assessmentData.totalMarks}
-            onChange={(e) =>
-              setAssessmentData((prev) => ({
-                ...prev,
-                totalMarks: e.target.value,
-              }))
-            }
-            placeholder="100"
           />
           <Input
             label="Passing Score"

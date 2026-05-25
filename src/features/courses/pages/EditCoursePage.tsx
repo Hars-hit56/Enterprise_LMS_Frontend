@@ -1,5 +1,7 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useState } from "react";
+import { ConfirmModal } from "../../../components/common/ConfirmModal";
 import { CourseForm } from "../components/EditCourseForm";
 import { useAssessments } from "../../assessments/hooks/useAssessments";
 import { Toast } from "../../../components/ui/Toast";
@@ -12,16 +14,32 @@ import {
   updateCourse,
 } from "../store/courseStore";
 import { fetchInstructorAnalytics } from "../../analytics/store/analyticsStore";
+import {
+  clearDeleteError,
+  deleteAssessment,
+} from "../../assessments/store/assessmentStore";
 
 export function EditCoursePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const { isUpdating, updateError } = useSelector(
     (state: RootState) => state.courses,
   );
+  const { deleteError, isDeleting } = useSelector(
+    (state: RootState) => state.assessments,
+  );
   const { course, isLoading, error } = useCourseDetail(id);
   const { assessments } = useAssessments(id);
+  const [assessmentToDelete, setAssessmentToDelete] =
+    useState<Assessment | null>(null);
+  const successMessage =
+    typeof location.state === "object" &&
+    location.state &&
+    "successMessage" in location.state
+      ? String(location.state.successMessage)
+      : "";
 
   const courseAssessments = id
     ? assessments.filter(
@@ -43,21 +61,34 @@ export function EditCoursePage() {
       dispatch(fetchInstructorAnalytics()).unwrap(),
     ]);
     navigate("/instructor/courses", {
+      replace: true,
       state: { successMessage: "Course updated successfully." },
     });
   };
 
   const handleCancel = () => {
-    navigate("/instructor/courses");
+    navigate("/instructor/courses", { replace: true });
   };
 
   const handleEditAssessment = (assessment: Assessment) => {
-    navigate(`../assessments/edit/${assessment.id}`);
+    navigate(`/instructor/assessments/edit/${assessment.id}?courseId=${id}`);
   };
 
   const handleDeleteAssessment = (assessment: Assessment) => {
-    // TODO: delete assessment
-    console.log("Delete assessment", assessment);
+    setAssessmentToDelete(assessment);
+  };
+
+  const handleConfirmDeleteAssessment = async () => {
+    if (!assessmentToDelete) {
+      return;
+    }
+
+    try {
+      await dispatch(deleteAssessment(assessmentToDelete.id)).unwrap();
+      setAssessmentToDelete(null);
+    } catch {
+      // The slice stores the API error and the toast renders it.
+    }
   };
 
   if (isLoading) {
@@ -74,11 +105,25 @@ export function EditCoursePage() {
 
   return (
     <>
+      {successMessage ? (
+        <Toast
+          message={successMessage}
+          type="success"
+          onClose={() => navigate(".", { replace: true, state: null })}
+        />
+      ) : null}
       {updateError ? (
         <Toast
           message={updateError}
           type="error"
           onClose={() => dispatch(clearUpdateError())}
+        />
+      ) : null}
+      {deleteError ? (
+        <Toast
+          message={deleteError}
+          type="error"
+          onClose={() => dispatch(clearDeleteError())}
         />
       ) : null}
       <CourseForm
@@ -90,6 +135,19 @@ export function EditCoursePage() {
         onSave={handleSave}
         onCancel={handleCancel}
         isSaving={isUpdating}
+      />
+      <ConfirmModal
+        open={Boolean(assessmentToDelete)}
+        title="Delete assessment?"
+        message={`Are you sure you want to delete "${
+          assessmentToDelete?.title ?? "this assessment"
+        }"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        loadingLabel="Deleting..."
+        cancelLabel="Cancel"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDeleteAssessment}
+        onCancel={() => setAssessmentToDelete(null)}
       />
     </>
   );

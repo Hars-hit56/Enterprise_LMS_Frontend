@@ -61,23 +61,33 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody>
-            {filteredRows.map((row, index) => (
-              <tr
-                key={index}
-                className="border-t border-line-100 text-[12px] text-ink-900"
-              >
-                {columns.map((column) => (
-                  <td
-                    key={String(column.key)}
-                    className="px-5 py-3.5 align-middle"
-                  >
-                    {column.render ?
-                      column.render(row)
-                    : String(row[column.key as keyof T] ?? "")}
-                  </td>
-                ))}
+            {filteredRows.length > 0 ?
+              filteredRows.map((row, index) => (
+                <tr
+                  key={index}
+                  className="border-t border-line-100 text-[12px] text-ink-900"
+                >
+                  {columns.map((column) => (
+                    <td
+                      key={String(column.key)}
+                      className="px-5 py-3.5 align-middle"
+                    >
+                      {column.render ?
+                        column.render(row)
+                      : String(row[column.key as keyof T] ?? "")}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            : <tr className="border-t border-line-100">
+                <td
+                  colSpan={columns.length}
+                  className="px-5 py-10 text-center text-[12px] font-medium text-ink-500"
+                >
+                  {query ? "No matching records found." : "No data available."}
+                </td>
               </tr>
-            ))}
+            }
           </tbody>
         </table>
       </div>

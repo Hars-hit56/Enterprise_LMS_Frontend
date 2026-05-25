@@ -8,7 +8,6 @@ export interface AssessmentFormData {
   description: string;
   course: string;
   timeLimit: string;
-  totalMarks: string;
   passingScore: string;
   maxAttempts?: string;
   questions: Question[];
@@ -43,11 +42,10 @@ interface CreateAssessmentPayload {
   courseId: string;
   questions: ApiQuestion[];
   timeLimit: number;
-  totalMarks: number;
   passingScore: number;
 }
 
-interface CreateAssessmentResponse {
+interface AssessmentMutationResponse {
   success: boolean;
   message: string;
   assessment: ApiAssessment;
@@ -145,15 +143,31 @@ function buildCreateAssessmentPayload(
       correctAnswer: question.correctIndex,
     })),
     timeLimit: toNumber(assessment.timeLimit, 0),
-    totalMarks: toNumber(assessment.totalMarks, 0),
     passingScore: toNumber(assessment.passingScore, 0),
+  };
+}
+
+function buildUpdateAssessmentPayload(assessment: AssessmentFormData) {
+  return {
+    title: assessment.title,
+    description: assessment.description,
+    passingScore: toNumber(assessment.passingScore, 0),
+    questions: assessment.questions.map((question) => ({
+      point: Number(question.points) || 0,
+      question: question.question,
+      options: question.options,
+      explanation: question.explanation,
+      correctAnswer: question.correctIndex,
+    })),
   };
 }
 
 export const assessmentService = {
   async getAssessments(courseId?: string) {
     try {
-      const endpoint = `${API_ENDPOINT_ASSESSMENT}/${courseId}`;
+      const endpoint = courseId
+        ? `${API_ENDPOINT_ASSESSMENT}/${courseId}`
+        : API_ENDPOINT_ASSESSMENT;
 
       const response = await apiClient.get<AssessmentsApiResponse>(endpoint);
       return normalizeAssessments(response.data).map(mapApiAssessment);
@@ -166,7 +180,7 @@ export const assessmentService = {
 
   async createAssessment(assessment: AssessmentFormData) {
     try {
-      const response = await apiClient.post<CreateAssessmentResponse>(
+      const response = await apiClient.post<AssessmentMutationResponse>(
         API_ENDPOINT_ASSESSMENT,
         buildCreateAssessmentPayload(assessment),
       );
@@ -178,6 +192,34 @@ export const assessmentService = {
     } catch (error) {
       throw new Error(
         extractErrorMessage(error, "Failed to create assessment."),
+      );
+    }
+  },
+
+  async updateAssessment(assessmentId: string, assessment: AssessmentFormData) {
+    try {
+      const response = await apiClient.put<AssessmentMutationResponse>(
+        `${API_ENDPOINT_ASSESSMENT}/${assessmentId}`,
+        buildUpdateAssessmentPayload(assessment),
+      );
+
+      return {
+        assessment: mapApiAssessment(response.data.assessment),
+        message: response.data.message,
+      };
+    } catch (error) {
+      throw new Error(
+        extractErrorMessage(error, "Failed to update assessment."),
+      );
+    }
+  },
+
+  async deleteAssessment(assessmentId: string) {
+    try {
+      await apiClient.delete(`${API_ENDPOINT_ASSESSMENT}/${assessmentId}`);
+    } catch (error) {
+      throw new Error(
+        extractErrorMessage(error, "Failed to delete assessment."),
       );
     }
   },
