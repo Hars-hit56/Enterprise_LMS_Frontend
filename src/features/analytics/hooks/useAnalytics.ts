@@ -166,7 +166,7 @@ export function useAdminAnalytics() {
           label: "Total Users",
           value: formatNumber(admin.totalUsers),
           tone: "brand",
-          delta: `${formatNumber(admin?.totalStudents)} students ${formatNumber(admin?.totalInstructor)} instructors `,
+          delta: `${formatNumber(admin.totalStudents)} students | ${formatNumber(admin.totalInstructor)} instructors | ${formatNumber(admin.totalAdmin)} admins`,
           icon: Users,
         },
         {
@@ -198,6 +198,7 @@ export function useAdminAnalytics() {
     stats,
     engagementData: admin?.engagementData ?? [],
     progressData: admin?.progressData ?? [],
+    admin,
     isLoading,
     error,
   };

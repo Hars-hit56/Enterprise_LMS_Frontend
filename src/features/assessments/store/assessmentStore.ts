@@ -32,6 +32,13 @@ export const fetchAssessments = createAsyncThunk<Assessment[], string | undefine
   async (courseId) => assessmentService.getAssessments(courseId),
 );
 
+export const fetchInstructorCourseAssessments = createAsyncThunk<
+  Assessment[],
+  string
+>("assessments/fetchInstructorCourseAssessments", async (courseId) =>
+  assessmentService.getInstructorCourseAssessments(courseId),
+);
+
 export const createAssessment = createAsyncThunk<
   { assessment: Assessment; message: string },
   AssessmentFormData
@@ -81,6 +88,19 @@ const assessmentSlice = createSlice({
       .addCase(fetchAssessments.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message ?? "Failed to load assessments.";
+      })
+      .addCase(fetchInstructorCourseAssessments.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchInstructorCourseAssessments.fulfilled, (state, action) => {
+        state.assessments = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(fetchInstructorCourseAssessments.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error =
+          action.error.message ?? "Failed to load course assessments.";
       })
       .addCase(createAssessment.pending, (state) => {
         state.isCreating = true;

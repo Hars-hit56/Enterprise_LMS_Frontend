@@ -5,9 +5,13 @@ import {
   deleteUser as deleteUserThunk,
   fetchInstructorStudents,
   fetchUsers,
+  updateInstructorUser as updateInstructorUserThunk,
   updateUser as updateUserThunk,
 } from "../store/userStore";
-import type { User } from "../../../types";
+import type {
+  AdminUpdateUserPayload,
+  InstructorUpdateUserPayload,
+} from "../services/userService";
 
 export function useUsers() {
   const dispatch = useDispatch<AppDispatch>();
@@ -19,7 +23,7 @@ export function useUsers() {
     void dispatch(fetchUsers());
   }, [dispatch]);
 
-  const updateUser = (id: string, updates: Partial<User>) =>
+  const updateUser = (id: string, updates: AdminUpdateUserPayload) =>
     dispatch(updateUserThunk({ id, updates })).unwrap();
 
   const deleteUser = (id: string) => dispatch(deleteUserThunk(id)).unwrap();
@@ -37,8 +41,8 @@ export function useInstructorStudents() {
     void dispatch(fetchInstructorStudents());
   }, [dispatch]);
 
-  const updateUser = (id: string, updates: Partial<User>) =>
-    dispatch(updateUserThunk({ id, updates })).unwrap();
+  const updateUser = (id: string, updates: InstructorUpdateUserPayload) =>
+    dispatch(updateInstructorUserThunk({ id, updates })).unwrap();
 
   const deleteUser = (id: string) => dispatch(deleteUserThunk(id)).unwrap();
 

@@ -6,6 +6,7 @@ import { DataTableSkeleton } from "../../../components/skeletons/DataTableSkelet
 import { useInstructorStudents } from "../hooks/useUsers";
 import { useAuth } from "../../auth/hooks/useAuth";
 import type { User } from "../../../types";
+import type { InstructorUpdateUserPayload } from "../services/userService";
 
 export function StudentsPage() {
   const { users: students, isLoading, error, updateUser, deleteUser } =
@@ -23,7 +24,7 @@ export function StudentsPage() {
     setSelectedUser(null);
   };
 
-  const handleSubmit = async (data: Omit<User, "id" | "joined" | "photoUrl">) => {
+  const handleSubmit = async (data: InstructorUpdateUserPayload) => {
     if (!selectedUser) return;
     setIsSaving(true);
     try {

@@ -1,8 +1,10 @@
+import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { UserRole } from "../../../types";
 import type { AppDispatch, RootState } from "../../../store/store";
 import {
   clearAuthMessage,
+  fetchCurrentUser,
   loginUser,
   logoutUser,
   signupUser,
@@ -35,6 +37,10 @@ export function useAuth() {
     const result = await dispatch(updateProfile(payload)).unwrap();
     return result.user;
   };
+  const refreshCurrentUser = useCallback(async () => {
+    const result = await dispatch(fetchCurrentUser()).unwrap();
+    return result;
+  }, [dispatch]);
   const clearMessage = () => {
     dispatch(clearAuthMessage());
   };
@@ -48,6 +54,7 @@ export function useAuth() {
     signup,
     logout,
     saveProfile,
+    refreshCurrentUser,
     clearMessage,
   };
 }

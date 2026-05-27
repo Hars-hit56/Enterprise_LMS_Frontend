@@ -30,6 +30,7 @@ export interface AdminAnalyticsResponse {
 
   totalRevenue: number;
   totalCourses: number;
+  totalAdmin: number;
   totalInstructor: number;
   totalStudents: number;
   totalEnrolledStudent: number;

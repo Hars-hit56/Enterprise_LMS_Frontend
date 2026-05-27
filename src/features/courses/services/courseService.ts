@@ -1,6 +1,7 @@
 import type { Course, CourseFormData, UserRole } from "../../../types";
 import { apiClient } from "../../../services/apiClient";
 import {
+  API_ENDPOINT_COURSE_ADMIN_COURSES,
   API_ENDPOINT_COURSE_CREATE,
   API_ENDPOINT_COURSE_EDIT,
   API_ENDPOINT_COURSE_GET_BY_ID,
@@ -16,6 +17,15 @@ type CreatorCoursesApiResponse =
   | Course
   | Course[]
   | { data: Course | Course[] };
+
+type AdminCoursesApiResponse =
+  | Course[]
+  | {
+      success?: boolean;
+      totalCourses?: number;
+      courses?: Course[];
+      data?: Course[];
+    };
 
 type CourseDetailApiResponse =
   | Course
@@ -66,6 +76,14 @@ function normalizeCreatorCourses(
   const courseData = "data" in response ? response.data : response;
 
   return Array.isArray(courseData) ? courseData : [courseData];
+}
+
+function normalizeAdminCourses(response: AdminCoursesApiResponse): Course[] {
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  return response.courses ?? response.data ?? [];
 }
 
 function normalizeEnrollments(response: EnrollmentsApiResponse): Enrollment[] {
@@ -131,15 +149,17 @@ function mapApiCourse(course: Course): Course {
   const lessons = course.lessons ?? getCourseLessonCount(course);
   const enrolledStudents = course.enrolledStudents ?? [];
   const instructor = course?.creator?.name;
+  const title = course.title ?? course.course ?? "";
 
   return {
     ...course,
     id,
+    title,
     instructor: instructor,
     duration: `${lessons} lessons`,
-    students: enrolledStudents.length,
+    students: course.students ?? enrolledStudents.length,
     rating: getCourseRating(course),
-    thumbnail: course.thumbnail ?? course.title.charAt(0).toUpperCase(),
+    thumbnail: course.thumbnail ?? title.charAt(0).toUpperCase(),
   };
 }
 
@@ -249,15 +269,19 @@ function buildCourseFormDataFromCourse(
 
 export const courseService = {
   async getCourses(role: UserRole) {
+    if (role === "admin") {
+      const response = await apiClient.get<AdminCoursesApiResponse>(
+        API_ENDPOINT_COURSE_ADMIN_COURSES,
+      );
+
+      return normalizeAdminCourses(response.data).map(mapApiCourse);
+    }
+
     if (role === "student") {
       const response = await apiClient.get<Course[]>(
         API_ENDPOINT_COURSE_GET_PUBLISHED,
       );
       return response.data.map(mapApiCourse);
-    }
-
-    if (role !== "instructor") {
-      return [];
     }
 
     const response = await apiClient.get<CreatorCoursesApiResponse>(

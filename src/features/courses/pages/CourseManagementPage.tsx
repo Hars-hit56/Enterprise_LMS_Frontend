@@ -44,6 +44,29 @@ function formatCoursePrice(course: Course) {
   return `${currency} ${course.price}`.trim();
 }
 
+function formatCourseRevenue(course: Course) {
+  const revenue = course.revenue ?? 0;
+  const currency =
+    course.currency === "INR" ? "\u20B9" : (course.currency ?? "");
+
+  return `${currency} ${revenue}`.trim();
+}
+
+function renderInstructor(course: Course) {
+  return (
+    <div className="min-w-0">
+      <p className="truncate text-[12px] font-medium text-ink-900">
+        {course.creator?.name ?? course.instructor ?? "Unknown instructor"}
+      </p>
+      {course.creator?.email ? (
+        <p className="truncate text-[11px] text-ink-500">
+          {course.creator.email}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 const getColumns = (
   role: UserRole,
   onEditCourse: (course: Course) => void,
@@ -64,20 +87,21 @@ const getColumns = (
     {
       key: "enrolledStudents",
       header: "Students",
-      render: (course: Course) => course.enrolledStudents?.length ?? 0,
+      render: (course: Course) =>
+        course.students ?? course.enrolledStudents?.length ?? 0,
     },
     { key: "category", header: "Category" },
     {
       key: "price",
       header: "Revenue",
-      render: formatCoursePrice,
+      render: role === "admin" ? formatCourseRevenue : formatCoursePrice,
     },
     {
       key: "actions",
       header: "",
       render: (course: Course) => (
         <RowActions
-          onEdit={() => onEditCourse(course)}
+          onEdit={role === "admin" ? undefined : () => onEditCourse(course)}
           onDelete={() => onDeleteCourse(course)}
           editLabel="Edit Course"
           deleteLabel="Delete"
@@ -90,6 +114,7 @@ const getColumns = (
     baseColumns.splice(1, 0, {
       key: "instructor",
       header: "Instructor",
+      render: renderInstructor,
     });
   }
 

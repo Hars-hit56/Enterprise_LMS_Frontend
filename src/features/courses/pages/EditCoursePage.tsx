@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { ConfirmModal } from "../../../components/common/ConfirmModal";
 import { CourseForm } from "../components/EditCourseForm";
-import { useAssessments } from "../../assessments/hooks/useAssessments";
+import { useInstructorCourseAssessments } from "../../assessments/hooks/useAssessments";
 import { Toast } from "../../../components/ui/Toast";
 import type { CourseFormData, Assessment } from "../../../types";
 import type { AppDispatch, RootState } from "../../../store/store";
@@ -31,7 +31,7 @@ export function EditCoursePage() {
     (state: RootState) => state.assessments,
   );
   const { course, isLoading, error } = useCourseDetail(id);
-  const { assessments } = useAssessments(id);
+  const { assessments: courseAssessments } = useInstructorCourseAssessments(id);
   const [assessmentToDelete, setAssessmentToDelete] =
     useState<Assessment | null>(null);
   const successMessage =
@@ -40,15 +40,6 @@ export function EditCoursePage() {
     "successMessage" in location.state
       ? String(location.state.successMessage)
       : "";
-
-  const courseAssessments = id
-    ? assessments.filter(
-        (assessment) =>
-          !assessment.courseId ||
-          assessment.courseId === id ||
-          assessment.course === id,
-      )
-    : assessments;
 
   const handleSave = async (data: CourseFormData) => {
     if (!id) {

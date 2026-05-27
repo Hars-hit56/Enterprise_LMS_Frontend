@@ -78,6 +78,17 @@ export const updateProfile = createAsyncThunk<
   },
 )
 
+export const fetchCurrentUser = createAsyncThunk<AuthUser>(
+  'auth/fetchCurrentUser',
+  async () => authService.getCurrentUser(),
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as { auth: AuthState }
+      return Boolean(state.auth.token) && !state.auth.isLoading
+    },
+  },
+)
+
 const initialState: AuthState = {
   user: authService.getUser(),
   token: authService.getToken(),
@@ -160,6 +171,18 @@ const authSlice = createSlice({
         state.isLoading = false
         state.error = action.error.message ?? 'Failed to update profile.'
         state.successMessage = null
+      })
+      .addCase(fetchCurrentUser.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.user = action.payload
+        state.isLoading = false
+      })
+      .addCase(fetchCurrentUser.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.error.message ?? 'Failed to load current user.'
       })
   },
 })

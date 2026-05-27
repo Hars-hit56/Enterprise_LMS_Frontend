@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 export type UserRole = "student" | "instructor" | "admin";
+export type UserStatus = "Active" | "Inactive" | "Suspended";
 
 export interface User {
   id: string;
@@ -10,19 +11,23 @@ export interface User {
   role: UserRole;
   password?: string;
   photoUrl?: string;
-  status?: "Active" | "Inactive" | "Invited";
+  status?: UserStatus;
+  description?: string;
   joined?: string;
 }
 
 export interface creator {
-  _id: string;
+  _id?: string;
+  id?: string;
   name: string;
-  photoUrl: string;
+  email?: string;
+  photoUrl?: string;
 }
 export interface Course {
   _id?: string;
   id?: string;
   title: string;
+  course?: string;
   category: string;
   level?: "Beginner" | "Intermediate" | "Advanced";
   instructor?: string;
@@ -31,6 +36,7 @@ export interface Course {
   duration?: string;
   status?: "Published" | "Draft" | "Review";
   students?: number;
+  revenue?: number;
   rating?: number;
   thumbnail?: string;
   description?: string;

@@ -7,6 +7,7 @@ import { DataTableSkeleton } from "../../../components/skeletons/DataTableSkelet
 import { useUsers } from "../hooks/useUsers";
 import { useAuth } from "../../auth/hooks/useAuth";
 import type { User } from "../../../types";
+import type { AdminUpdateUserPayload } from "../services/userService";
 
 export function UserManagementPage() {
   const { users, isLoading, error, updateUser, deleteUser } = useUsers();
@@ -46,7 +47,7 @@ export function UserManagementPage() {
     setSelectedUser(null);
   };
 
-  const handleSubmit = async (data: Omit<User, "id" | "joined" | "photoUrl">) => {
+  const handleSubmit = async (data: AdminUpdateUserPayload) => {
     if (!selectedUser) return;
     setIsSaving(true);
     try {

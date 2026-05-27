@@ -1,5 +1,5 @@
 import type { AxiosError } from "axios";
-import type { UserRole } from "../../../types";
+import type { UserRole, UserStatus } from "../../../types";
 import {
   apiClient,
   getAuthToken,
@@ -9,6 +9,7 @@ import {
   API_ENDPOINT_AUTH_LOGIN,
   API_ENDPOINT_AUTH_LOGOUT,
   API_ENDPOINT_AUTH_SIGNUP,
+  API_ENDPOINT_USER_GET_CURRENT,
   API_ENDPOINT_USER_UPDATE_PROFILE,
 } from "../../../services/apiTypes";
 import { authUserStorageKey } from "../../../utils/constants";
@@ -18,8 +19,13 @@ export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
+  status?: UserStatus;
   description?: string;
   photoUrl?: string;
+  enrolledCourses?: unknown[];
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
 }
 
 export interface UpdateProfilePayload {
@@ -54,6 +60,14 @@ interface LoginResponse {
 }
 
 type UpdateProfileResponse =
+  | AuthUser
+  | {
+      data?: AuthUser;
+      message?: string;
+      user?: AuthUser;
+    };
+
+type CurrentUserResponse =
   | AuthUser
   | {
       data?: AuthUser;
@@ -180,6 +194,14 @@ function normalizeProfileResponse(response: UpdateProfileResponse) {
   };
 }
 
+function normalizeCurrentUserResponse(response: CurrentUserResponse) {
+  if ("_id" in response) {
+    return response;
+  }
+
+  return response.user ?? response.data;
+}
+
 export const authService = {
   async login(email: string, password: string) {
     const payload: LoginPayload = { email, password };
@@ -261,6 +283,32 @@ export const authService = {
         axiosError.response?.data?.message ?? axiosError.response?.data?.error;
 
       throw new Error(message ?? "Failed to update profile.");
+    }
+  },
+
+  async getCurrentUser() {
+    try {
+      const response = await apiClient.get<CurrentUserResponse>(
+        API_ENDPOINT_USER_GET_CURRENT,
+      );
+      const user = normalizeCurrentUserResponse(response.data);
+
+      if (!user) {
+        throw new Error("Current user request did not return a user.");
+      }
+
+      saveUser(user);
+
+      return user;
+    } catch (error) {
+      const axiosError = error as AxiosError<{
+        message?: string;
+        error?: string;
+      }>;
+      const message =
+        axiosError.response?.data?.message ?? axiosError.response?.data?.error;
+
+      throw new Error(message ?? "Failed to load current user.");
     }
   },
 

@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import type { User } from "../../../types";
+import type { AdminUpdateUserPayload } from "../services/userService";
 import UserForm from "./UserForm";
 
 interface EditUserModalProps {
@@ -7,7 +8,7 @@ interface EditUserModalProps {
   user: User | null;
   isSaving?: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<User, "id" | "joined" | "photoUrl">) => void;
+  onSubmit: (data: AdminUpdateUserPayload) => void;
 }
 
 export function EditUserModal({
@@ -40,7 +41,12 @@ export function EditUserModal({
           </button>
         </div>
         <div className="p-6">
-          <UserForm mode="edit" initialData={user} onSubmit={onSubmit} />
+          <UserForm
+            key={user.id}
+            mode="edit"
+            initialData={user}
+            onSubmit={onSubmit}
+          />
         </div>
         <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
           <button

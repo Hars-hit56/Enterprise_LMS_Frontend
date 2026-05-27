@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { User } from "../../../types";
 import { userService } from "../services/userService";
+import type { AdminUpdateUserPayload } from "../services/userService";
+import type { InstructorUpdateUserPayload } from "../services/userService";
 
 export interface UserState {
   users: User[];
@@ -26,9 +28,16 @@ export const fetchInstructorStudents = createAsyncThunk<User[]>(
 
 export const updateUser = createAsyncThunk<
   User,
-  { id: string; updates: Partial<User> }
+  { id: string; updates: AdminUpdateUserPayload }
 >("users/updateUser", async ({ id, updates }) =>
   userService.updateUser(id, updates),
+);
+
+export const updateInstructorUser = createAsyncThunk<
+  User,
+  { id: string; updates: InstructorUpdateUserPayload }
+>("users/updateInstructorUser", async ({ id, updates }) =>
+  userService.updateInstructorUser(id, updates),
 );
 
 export const deleteUser = createAsyncThunk<string, string>(
@@ -70,6 +79,12 @@ const userSlice = createSlice({
         state.error = action.error.message ?? "Failed to load students.";
       })
       .addCase(updateUser.fulfilled, (state, action) => {
+        const updatedUser = action.payload;
+        state.users = state.users.map((user) =>
+          user.id === updatedUser.id ? { ...user, ...updatedUser } : user,
+        );
+      })
+      .addCase(updateInstructorUser.fulfilled, (state, action) => {
         const updatedUser = action.payload;
         state.users = state.users.map((user) =>
           user.id === updatedUser.id ? { ...user, ...updatedUser } : user,

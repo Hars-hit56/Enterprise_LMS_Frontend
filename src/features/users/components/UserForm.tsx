@@ -1,35 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import type { User, UserRole } from "../../../types";
 import { Input } from "../../../components/ui/Input";
 import { Select } from "../../../components/ui/Select";
+import type { AdminUpdateUserPayload } from "../services/userService";
 
 interface UserFormProps {
   mode: "create" | "edit";
   initialData?: Partial<User>;
-  onSubmit: (data: Omit<User, "id" | "joined" | "photoUrl">) => void;
+  onSubmit: (data: AdminUpdateUserPayload) => void;
+}
+
+function getInitialFormData(initialData?: Partial<User>) {
+  return {
+    name: initialData?.name || "",
+    email: initialData?.email || "",
+    role: initialData?.role || ("student" as UserRole),
+    status: initialData?.status || ("Active" as NonNullable<User["status"]>),
+  };
 }
 
 const UserForm: React.FC<UserFormProps> = ({ mode, initialData, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    role: "student" as UserRole,
-    status: "Invited" as "Active" | "Inactive" | "Invited",
-  });
+  const [formData, setFormData] = useState(() => getInitialFormData(initialData));
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (mode === "edit" && initialData) {
-      setFormData({
-        name: initialData.name || "",
-        email: initialData.email || "",
-        role: initialData.role || "student",
-        status: initialData.status || "Invited",
-      });
-    }
-  }, [mode, initialData]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -106,13 +100,13 @@ const UserForm: React.FC<UserFormProps> = ({ mode, initialData, onSubmit }) => {
           onChange={(e) =>
             handleChange(
               "status",
-              e.target.value as "Active" | "Inactive" | "Invited",
+              e.target.value as NonNullable<User["status"]>,
             )
           }
         >
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
-          <option value="Invited">Invited</option>
+          <option value="Suspended">Suspended</option>
         </Select>
       </div>
       {/* </div> */}

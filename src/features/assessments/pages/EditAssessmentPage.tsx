@@ -20,7 +20,11 @@ export function EditAssessmentPage() {
   const { user } = useAuth();
   const role = user?.role === "admin" ? "admin" : "instructor";
   const sourceCourseId = searchParams.get("courseId");
-  const { assessments } = useAssessments();
+  const {
+    assessments,
+    error: assessmentsError,
+    isLoading: isAssessmentsLoading,
+  } = useAssessments(sourceCourseId ?? undefined);
   const { courses } = useCourses(user?.role || "student");
   const { isUpdating, updateError } = useSelector(
     (state: RootState) => state.assessments,
@@ -72,6 +76,18 @@ export function EditAssessmentPage() {
     navigate(getBackPath(), { replace: true });
   };
 
+  if (isAssessmentsLoading) {
+    return <div className="text-sm text-ink-500">Loading assessment...</div>;
+  }
+
+  if (assessmentsError) {
+    return (
+      <div className="text-sm font-medium text-danger-700">
+        {assessmentsError}
+      </div>
+    );
+  }
+
   if (!assessment) {
     return <div>Assessment not found</div>;
   }
@@ -86,6 +102,7 @@ export function EditAssessmentPage() {
         />
       ) : null}
       <AssessmentForm
+        key={`${assessment.id}-${assessment.questions?.length ?? 0}`}
         type="edit"
         assessment={assessment}
         courses={courses}

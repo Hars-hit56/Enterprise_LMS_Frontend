@@ -1,6 +1,9 @@
 import type { AxiosError } from "axios";
 import { apiClient } from "../../../services/apiClient";
-import { API_ENDPOINT_ASSESSMENT } from "../../../services/apiTypes";
+import {
+  API_ENDPOINT_ASSESSMENT,
+  API_ENDPOINT_INSTRUCTOR_ASSESSMENTS,
+} from "../../../services/apiTypes";
 import type { Assessment, AssessmentResult, Question } from "../../../types";
 
 export interface AssessmentFormData {
@@ -23,7 +26,8 @@ interface ApiQuestion {
 }
 
 interface ApiAssessment {
-  _id: string;
+  _id?: string;
+  id?: string;
   title: string;
   description?: string;
   courseId?: string;
@@ -34,6 +38,7 @@ interface ApiAssessment {
   passingScore?: number;
   maxAttempt?: number;
   createdAt?: string;
+  submissions?: number;
 }
 
 interface CreateAssessmentPayload {
@@ -87,7 +92,7 @@ function normalizeAssessments(response: AssessmentsApiResponse) {
 
 function mapApiAssessment(assessment: ApiAssessment): Assessment {
   return {
-    id: assessment._id,
+    id: assessment.id ?? assessment._id ?? "",
     title: assessment.title,
     description: assessment.description,
     course: assessment.course ?? assessment.courseId ?? "",
@@ -99,7 +104,7 @@ function mapApiAssessment(assessment: ApiAssessment): Assessment {
           year: "numeric",
         })
       : "",
-    submissions: 0,
+    submissions: assessment.submissions ?? 0,
     status: "Open",
     timeLimit:
       assessment.timeLimit !== undefined ? `${assessment.timeLimit} min` : "",
@@ -192,6 +197,19 @@ export const assessmentService = {
     } catch (error) {
       throw new Error(
         extractErrorMessage(error, "Failed to create assessment."),
+      );
+    }
+  },
+
+  async getInstructorCourseAssessments(courseId: string) {
+    try {
+      const response = await apiClient.get<AssessmentsApiResponse>(
+        `${API_ENDPOINT_INSTRUCTOR_ASSESSMENTS}/${courseId}`,
+      );
+      return normalizeAssessments(response.data).map(mapApiAssessment);
+    } catch (error) {
+      throw new Error(
+        extractErrorMessage(error, "Failed to load course assessments."),
       );
     }
   },
