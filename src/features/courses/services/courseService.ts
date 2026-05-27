@@ -94,18 +94,34 @@ function normalizeEnrollments(response: EnrollmentsApiResponse): Enrollment[] {
   return response.data ?? [];
 }
 
+function isCourseObject(value: unknown): value is Course {
+  return typeof value === "object" && value !== null;
+}
+
 function normalizeCourseDetail(response: CourseDetailApiResponse): Course {
   if ("course" in response) {
+    const course = response.course;
+
+    if (!isCourseObject(course)) {
+      throw new Error("Course detail response did not include a course.");
+    }
+
     return {
-      ...response.course,
-      isEnrolled: response.isEnrolled ?? response.course.isEnrolled,
+      ...course,
+      isEnrolled: response.isEnrolled ?? course.isEnrolled,
     };
   }
 
   if ("data" in response) {
+    const course = response.data;
+
+    if (!isCourseObject(course)) {
+      throw new Error("Course detail response did not include a course.");
+    }
+
     return {
-      ...response.data,
-      isEnrolled: response.isEnrolled ?? response.data.isEnrolled,
+      ...course,
+      isEnrolled: response.isEnrolled ?? course.isEnrolled,
     };
   }
 
