@@ -4,7 +4,9 @@ import {
   API_ENDPOINT_ANALYTICS_ADMIN,
   API_ENDPOINT_ANALYTICS_INSTRUCTOR,
   API_ENDPOINT_ANALYTICS_STUDENT,
+  API_ENDPOINT_RECOMMENDATIONS,
 } from "../../../services/apiTypes";
+import type { Course, Lesson } from "../../../types";
 
 export interface InstructorAnalyticsResponse {
   totalCourses: number;
@@ -20,6 +22,8 @@ export interface InstructorAnalyticsResponse {
   progressData?: {
     name: string;
     progress: number;
+    enrollments: number;
+    completed: number;
   }[];
 }
 
@@ -43,6 +47,8 @@ export interface AdminAnalyticsResponse {
   progressData?: {
     name: string;
     progress: number;
+    enrollments: number;
+    completed: number;
   }[];
 }
 
@@ -50,6 +56,37 @@ export interface StudentAnalyticsResponse {
   enrolledCourses: number;
   completedCourses: number;
   avgScore: number;
+}
+
+export interface StudentRecommendationCourse {
+  course: Omit<Course, "price"> & {
+    price?: string | number | null;
+  };
+  score: number;
+  reason: string;
+}
+
+export interface StudentRecommendationMaterial {
+  courseId: string;
+  courseTitle: string;
+  category: string;
+  moduleTitle: string;
+  lecture: Lesson;
+  score: number;
+  reason: string;
+}
+
+export interface StudentRecommendationsResponse {
+  success: boolean;
+  strategy: string;
+  profile: {
+    enrolledCourses: number;
+    averageAssessmentScore: number;
+    recommendedLevel: string;
+    preferredCategories: string[];
+  };
+  courses: StudentRecommendationCourse[];
+  materials: StudentRecommendationMaterial[];
 }
 
 function extractErrorMessage(error: unknown, fallback: string) {
@@ -102,6 +139,20 @@ export const analyticsService = {
     } catch (error) {
       throw new Error(
         extractErrorMessage(error, "Failed to load student analytics."),
+      );
+    }
+  },
+
+  async getStudentRecommendations() {
+    try {
+      const response = await apiClient.get<StudentRecommendationsResponse>(
+        API_ENDPOINT_RECOMMENDATIONS,
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        extractErrorMessage(error, "Failed to load recommendations."),
       );
     }
   },

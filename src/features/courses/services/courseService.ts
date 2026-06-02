@@ -54,6 +54,7 @@ interface Enrollment {
   id?: string;
   courseId: Course | string;
   progress?: number;
+  completedLectures?: string[];
 }
 
 type EnrollmentsApiResponse =
@@ -63,6 +64,11 @@ type EnrollmentsApiResponse =
     };
 
 type PurchaseCourseApiResponse = {
+  message?: string;
+  enrollment?: Enrollment;
+};
+
+type CompleteLectureApiResponse = {
   message?: string;
   enrollment?: Enrollment;
 };
@@ -351,6 +357,23 @@ export const courseService = {
 
       throw new Error(message ?? "Failed to purchase course.");
     }
+  },
+
+  async completeLecture(courseId: string, lectureId: string) {
+    const response = await apiClient.put<CompleteLectureApiResponse>(
+      `${API_ENDPOINT_ENROLLMENT}/${courseId}/lectures/${lectureId}/complete`,
+    );
+    const enrollment = response.data.enrollment;
+
+    return {
+      courseId:
+        typeof enrollment?.courseId === "string"
+          ? enrollment.courseId
+          : courseId,
+      enrollmentId: enrollment?._id ?? enrollment?.id,
+      progress: enrollment?.progress ?? 0,
+      completedLectures: enrollment?.completedLectures ?? [],
+    };
   },
 
   async createCourse(course: CourseFormData) {

@@ -29,3 +29,5 @@ export const API_ENDPOINT_ANALYTICS_INSTRUCTOR_STUDENTS =
   "/api/analytics/instructor/students";
 export const API_ENDPOINT_ANALYTICS_ADMIN = "/api/analytics/admin";
 export const API_ENDPOINT_ANALYTICS_STUDENT = "/api/analytics/student";
+
+export const API_ENDPOINT_RECOMMENDATIONS = "/api/recommendations";

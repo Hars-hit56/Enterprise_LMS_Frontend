@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BookOpen, IndianRupee, TrendingUp, Users, Video } from "lucide-react";
 import type { ElementType } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,6 +9,8 @@ import {
   fetchInstructorAnalytics,
   fetchStudentAnalytics,
 } from "../store/analyticsStore";
+import { analyticsService } from "../services/analyticsService";
+import type { StudentRecommendationsResponse } from "../services/analyticsService";
 
 export type StatWithIcon = DashboardStat & { icon: ElementType };
 
@@ -61,6 +63,47 @@ export function useStudentAnalytics() {
     : [];
 
   return { stats, isLoading, error };
+}
+
+export function useStudentRecommendations() {
+  const [recommendations, setRecommendations] =
+    useState<StudentRecommendationsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void analyticsService
+      .getStudentRecommendations()
+      .then((data) => {
+        if (isMounted) {
+          setRecommendations(data);
+        }
+      })
+      .catch((requestError: Error) => {
+        if (isMounted) {
+          setError(requestError.message);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return {
+    recommendations,
+    recommendedCourses: recommendations?.courses ?? [],
+    recommendedMaterials: recommendations?.materials ?? [],
+    isLoading,
+    error,
+  };
 }
 
 export function useInstructorAnalytics() {

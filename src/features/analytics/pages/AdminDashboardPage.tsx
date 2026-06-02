@@ -13,8 +13,6 @@ import {
   CartesianGrid,
   Cell,
   Legend,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -78,6 +76,10 @@ function formatCurrency(value: number) {
     currency: "INR",
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function clampProgress(progress: number) {
+  return Math.min(100, Math.max(0, Math.round(progress)));
 }
 
 function buildAdminInsights(
@@ -274,53 +276,54 @@ export function AdminDashboardPage() {
         </Card>
 
         <Card className="p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <TrendingUp size={18} className="text-green-600" />
-            <h3 className="font-semibold">Progress Tracking</h3>
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={18} className="text-green-600" />
+              <h3 className="font-semibold">Course Progress</h3>
+            </div>
+            <span className="rounded-full bg-soft px-3 py-1 text-[11px] font-medium text-ink-600">
+              {progressData.length} courses
+            </span>
           </div>
-          <div className="h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={progressData}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#f1f5f9"
-                />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: "#64748b" }}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: "#64748b" }}
-                  tickFormatter={(value) => `${value}%`}
-                />
-                <Tooltip
-                  cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}
-                  formatter={(value) => [`${value}%`, "Progress"]}
-                  contentStyle={{
-                    border: "1px solid #e2e8f0",
-                    borderRadius: 8,
-                    boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
-                  }}
-                />
-                <Legend
-                  iconType="circle"
-                  wrapperStyle={{ fontSize: 12, paddingTop: 12 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="progress"
-                  name="Progress"
-                  stroke="#2563eb"
-                  strokeWidth={2}
-                  dot={{ r: 4, fill: "#2563eb" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+
+          <div className="max-h-[250px] space-y-4 overflow-y-auto pr-1">
+            {progressData.length ? (
+              progressData.map((course) => {
+                const progress = clampProgress(course.progress);
+
+                return (
+                  <div
+                    key={course.name}
+                    className="space-y-2 border-b border-line-100 pb-4 last:border-b-0 last:pb-0"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-ink-950">
+                          {course.name}
+                        </p>
+                        <p className="mt-1 text-[11px] text-ink-500">
+                          {course.enrollments} enrolled | {course.completed} completed
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-[13px] font-semibold text-brand-600">
+                        {progress}%
+                      </span>
+                    </div>
+
+                    <div className="h-2 overflow-hidden rounded-full bg-soft">
+                      <div
+                        className="h-full rounded-full bg-brand-500"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="grid h-[250px] place-items-center rounded-lg bg-soft text-center text-sm text-ink-500">
+                No course progress data yet.
+              </div>
+            )}
           </div>
         </Card>
       </div>

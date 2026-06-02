@@ -106,6 +106,7 @@ export interface Assessment {
   totalMarks?: string;
   passingScore?: string;
   maxAttempts?: string;
+  attempted?: number;
   questions?: Question[];
 }
 

@@ -1,13 +1,16 @@
 import { Play } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { useDispatch } from "react-redux";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { EmptyState } from "../../../components/common/EmptyState";
 import { CoursePlayerSkeleton } from "../../../components/skeletons/CourseDetailSkeleton";
 import { Button } from "../../../components/ui/Button";
 import { Card } from "../../../components/ui/Card";
+import type { AppDispatch } from "../../../store/store";
 import type { Course, Lesson } from "../../../types";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useCourseDetail } from "../hooks/useCourseDetail";
+import { markLectureComplete } from "../store/courseStore";
 
 interface LessonItem {
   id: string;
@@ -59,6 +62,8 @@ function buildModules(course: Course): ModuleItem[] {
 export function CoursePlayerPage() {
   const { courseId } = useParams();
   const [searchParams] = useSearchParams();
+  const dispatch = useDispatch<AppDispatch>();
+  const completedLectureKeys = useRef(new Set<string>());
   const { user } = useAuth();
   const { course, isLoading } = useCourseDetail(courseId);
   const role = user?.role ?? "student";
@@ -86,6 +91,32 @@ export function CoursePlayerPage() {
       : `/${role}/courses/${courseId}?source=${source}`;
   const selectedLesson =
     allLessons.find((lesson) => lesson.id === lessonId) ?? allLessons[0];
+
+  function handleVideoEnded() {
+    const selectedCourseId = course?._id ?? course?.id ?? courseId;
+
+    if (role !== "student" || !selectedCourseId || !selectedLesson?.id) {
+      return;
+    }
+
+    const completionKey = `${selectedCourseId}:${selectedLesson.id}`;
+
+    if (completedLectureKeys.current.has(completionKey)) {
+      return;
+    }
+
+    completedLectureKeys.current.add(completionKey);
+    void dispatch(
+      markLectureComplete({
+        courseId: selectedCourseId,
+        lectureId: selectedLesson.id,
+      }),
+    )
+      .unwrap()
+      .catch(() => {
+        completedLectureKeys.current.delete(completionKey);
+      });
+  }
 
   if (isLoading) {
     return <CoursePlayerSkeleton />;
@@ -122,6 +153,7 @@ export function CoursePlayerPage() {
                 <video
                   src={selectedLesson.videoUrl}
                   controls
+                  onEnded={handleVideoEnded}
                   className="aspect-video w-full bg-black"
                 />
               ) : (

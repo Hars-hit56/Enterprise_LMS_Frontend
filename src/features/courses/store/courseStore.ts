@@ -107,6 +107,18 @@ export const purchaseCourse = createAsyncThunk<
   courseService.purchaseCourse(courseId),
 );
 
+export const markLectureComplete = createAsyncThunk<
+  {
+    courseId: string;
+    enrollmentId?: string;
+    progress: number;
+    completedLectures: string[];
+  },
+  { courseId: string; lectureId: string }
+>("courses/markLectureComplete", async ({ courseId, lectureId }) =>
+  courseService.completeLecture(courseId, lectureId),
+);
+
 const courseSlice = createSlice({
   name: "courses",
   initialState,
@@ -272,6 +284,31 @@ const courseSlice = createSlice({
         state.isPurchasing = false;
         state.purchaseError =
           action.error.message ?? "Failed to purchase course.";
+      })
+      .addCase(markLectureComplete.fulfilled, (state, action) => {
+        const { courseId, enrollmentId, progress } = action.payload;
+
+        state.courses = state.courses.map((course) =>
+          (course._id ?? course.id) === courseId
+            ? {
+                ...course,
+                enrollmentId: enrollmentId ?? course.enrollmentId,
+                progress,
+              }
+            : course,
+        );
+
+        const selectedCourse = state.selectedCourse;
+        if (
+          selectedCourse &&
+          (selectedCourse._id ?? selectedCourse.id) === courseId
+        ) {
+          state.selectedCourse = {
+            ...selectedCourse,
+            enrollmentId: enrollmentId ?? selectedCourse.enrollmentId,
+            progress,
+          };
+        }
       });
   },
 });

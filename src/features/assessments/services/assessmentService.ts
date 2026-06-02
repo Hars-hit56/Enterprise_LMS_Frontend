@@ -37,6 +37,7 @@ interface ApiAssessment {
   totalMarks?: number;
   passingScore?: number;
   maxAttempt?: number;
+  attempted?: number;
   createdAt?: string;
   submissions?: number;
 }
@@ -116,6 +117,7 @@ function mapApiAssessment(assessment: ApiAssessment): Assessment {
         : "",
     maxAttempts:
       assessment.maxAttempt !== undefined ? String(assessment.maxAttempt) : "",
+    attempted: assessment.attempted ?? 0,
     questions: assessment.questions?.map((question, index) => ({
       id: index + 1,
       question: question.question,

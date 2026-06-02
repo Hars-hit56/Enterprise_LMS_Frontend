@@ -10,7 +10,7 @@ import {
   Star,
   Users,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { EmptyState } from "../../../components/common/EmptyState";
@@ -22,7 +22,6 @@ import { Toast } from "../../../components/ui/Toast";
 import type { AppDispatch, RootState } from "../../../store/store";
 import type { Assessment, Course, Lesson } from "../../../types";
 import { useAssessments } from "../../assessments/hooks/useAssessments";
-import { assessmentService } from "../../assessments/services/assessmentService";
 import { useCourseDetail } from "../hooks/useCourseDetail";
 import { clearPurchaseError, purchaseCourse } from "../store/courseStore";
 
@@ -119,32 +118,8 @@ function AssessmentListItem({
   assessment: Assessment;
   onOpen: (assessmentId: string, hasResult: boolean) => void;
 }) {
-  const [hasResult, setHasResult] = useState(false);
   const questionCount = assessment.questions?.length ?? 0;
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadResultStatus() {
-      try {
-        await assessmentService.getAssessmentResult(assessment.id);
-
-        if (isMounted) {
-          setHasResult(true);
-        }
-      } catch {
-        if (isMounted) {
-          setHasResult(false);
-        }
-      }
-    }
-
-    void loadResultStatus();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [assessment.id]);
+  const hasResult = (assessment.attempted ?? 0) > 0;
 
   return (
     <div className="rounded-[22px] border border-line-100 bg-white p-3">
