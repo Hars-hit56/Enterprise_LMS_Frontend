@@ -26,7 +26,13 @@ interface CourseFormProps {
 }
 
 const difficultyOptions = ["Beginner", "Intermediate"] as const;
-const categoryOptions = ["Mobile Development", "Web Development"] as const;
+const categoryOptions = [
+  "Mobile Development",
+  "Web Development",
+  "Programming / Software Development",
+  "Rajasthan GK",
+  "Computer Anudeshak",
+] as const;
 const currencyOptions = ["INR"] as const;
 
 function createDefaultModules(): Module[] {
