@@ -63,7 +63,7 @@ export function CoursesPage() {
             <Select
               value={category}
               onChange={(event) => setCategory(event.target.value)}
-              className="rounded-xl border-line-100 bg-white px-3 py-2 text-[12px] text-ink-700"
+              className="w-[180px] rounded-xl border-line-100 bg-white px-3 py-2 text-[12px] text-ink-700"
             >
               {categories.map((option) => (
                 <option key={option} value={option}>
