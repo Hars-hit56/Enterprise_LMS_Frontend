@@ -5,7 +5,14 @@ import { Select } from "../../../components/ui/Select";
 import { CourseGrid } from "../components/CourseGrid";
 import { useCourses } from "../hooks/useCourses";
 
-const categories = ["All Categories", "Mobile Development", "Web Development"];
+const categories = [
+  "All Categories",
+  "Mobile Development",
+  "Web Development",
+  "Programming / Software Development",
+  "Rajasthan GK",
+  "Computer Anudeshak",
+];
 const levels = ["All Levels", "Beginner", "Intermediate"];
 
 export function CoursesPage() {
